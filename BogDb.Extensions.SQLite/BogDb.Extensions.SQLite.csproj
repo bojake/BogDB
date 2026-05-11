@@ -12,6 +12,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.SQLite</PackageId>
+    <Title>BogDB SQLite Extension</Title>
+    <Description>SQLite scan and attach extension package for BogDB.</Description>
   </PropertyGroup>
 
 </Project>

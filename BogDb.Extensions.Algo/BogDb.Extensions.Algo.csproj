@@ -8,6 +8,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.Algo</PackageId>
+    <Title>BogDB Algorithms Extension</Title>
+    <Description>Graph algorithm extension package for BogDB, including community and connectivity algorithms.</Description>
   </PropertyGroup>
 
 </Project>

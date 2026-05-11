@@ -8,6 +8,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.HttpFS</PackageId>
+    <Title>BogDB HTTP File System Extension</Title>
+    <Description>HTTP, HTTPS, and cloud-style file system extension package for BogDB.</Description>
   </PropertyGroup>
 
 </Project>

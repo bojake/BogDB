@@ -8,6 +8,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.LLM</PackageId>
+    <Title>BogDB LLM Extension</Title>
+    <Description>LLM and embedding helper extension package for BogDB.</Description>
   </PropertyGroup>
 
 </Project>

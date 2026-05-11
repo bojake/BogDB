@@ -8,6 +8,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.Json</PackageId>
+    <Title>BogDB JSON Extension</Title>
+    <Description>JSON scalar and table-function extension package for BogDB.</Description>
   </PropertyGroup>
 
 </Project>
