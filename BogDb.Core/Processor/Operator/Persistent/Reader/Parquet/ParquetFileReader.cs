@@ -74,14 +74,11 @@ internal sealed class ParquetFileReader : IDisposable
             var columns = new Array[colCount];
             for (int c = 0; c < colCount; c++)
             {
-                var dataColumn = rowGroupReader.ReadColumnAsync(_dataFields[c])
-                    .GetAwaiter().GetResult();
-                columns[c] = dataColumn.Data;
+                columns[c] = ReadColumn(rowGroupReader, _dataFields[c]);
             }
 
-            // Determine row count from first column
             if (colCount == 0) continue;
-            var rowCount = columns[0].Length;
+            var rowCount = (int)rowGroupReader.RowCount;
 
             // Yield rows
             for (int r = 0; r < rowCount; r++)
@@ -103,7 +100,51 @@ internal sealed class ParquetFileReader : IDisposable
 
     public void Dispose()
     {
-        _reader.Dispose();
+        _reader.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _stream.Dispose();
+    }
+
+    private static Array ReadColumn(ParquetRowGroupReader rowGroupReader, DataField field)
+    {
+        var rowCount = checked((int)rowGroupReader.RowCount);
+        if (field.ClrType == typeof(string))
+        {
+            var values = new string[rowCount];
+            rowGroupReader.ReadAsync(field, values.AsMemory(), null, default)
+                .GetAwaiter().GetResult();
+            return values;
+        }
+
+        var valuesType = field.ClrNullableIfHasNullsType;
+        var nullableType = Nullable.GetUnderlyingType(valuesType);
+        var methodName = nullableType == null
+            ? nameof(ReadStructColumn)
+            : nameof(ReadNullableStructColumn);
+        var typeArgument = nullableType ?? valuesType;
+        var method = typeof(ParquetFileReader)
+            .GetMethod(methodName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            ?? throw new MissingMethodException(nameof(ParquetFileReader), methodName);
+
+        return (Array)method
+            .MakeGenericMethod(typeArgument)
+            .Invoke(null, new object[] { rowGroupReader, field, rowCount })!;
+    }
+
+    private static Array ReadStructColumn<T>(ParquetRowGroupReader rowGroupReader, DataField field, int rowCount)
+        where T : struct
+    {
+        var values = new T[rowCount];
+        rowGroupReader.ReadAsync(field, values.AsMemory(), null, default)
+            .GetAwaiter().GetResult();
+        return values;
+    }
+
+    private static Array ReadNullableStructColumn<T>(ParquetRowGroupReader rowGroupReader, DataField field, int rowCount)
+        where T : struct
+    {
+        var values = new T?[rowCount];
+        rowGroupReader.ReadAsync(field, values.AsMemory(), null, default)
+            .GetAwaiter().GetResult();
+        return values;
     }
 }
