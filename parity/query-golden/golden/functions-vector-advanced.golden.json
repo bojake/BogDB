@@ -1,0 +1,134 @@
+﻿{
+  "corpus": "corpus-functions-vector-advanced.cypher",
+  "blessedAt": "2026-03-22T02:05:18.7297559Z",
+  "queries": [
+    {
+      "name": "vector_l1_distance",
+      "cypher": "RETURN array_l1_distance(array_value(1.0, 2.0, 3.0), array_value(4.0, 0.0, 3.0)) AS l1",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "l1"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "vector_squared_distance",
+      "cypher": "RETURN array_squared_distance(array_value(1.0, 2.0), array_value(4.0, 6.0)) AS sq",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sq"
+      ],
+      "rows": [
+        [
+          "25"
+        ]
+      ]
+    },
+    {
+      "name": "vector_cosine_distance",
+      "cypher": "RETURN array_cosine_distance(array_value(1.0, 0.0), array_value(0.0, 1.0)) AS cosine_dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cosine_dist"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "vector_normalize_zero",
+      "cypher": "RETURN list_element(array_normalize(array_value(0.0, 0.0)), 1) AS first_zero, list_element(array_normalize(array_value(0.0, 0.0)), 2) AS second_zero",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "first_zero",
+        "second_zero"
+      ],
+      "rows": [
+        [
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "array_aggregate_stats",
+      "cypher": "RETURN array_min(array_value(4.0, 1.0, 9.0)) AS min_v, array_max(array_value(4.0, 1.0, 9.0)) AS max_v, array_sum(array_value(4.0, 1.0, 9.0)) AS sum_v, array_avg(array_value(4.0, 1.0, 9.0)) AS avg_v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "min_v",
+        "max_v",
+        "sum_v",
+        "avg_v"
+      ],
+      "rows": [
+        [
+          "1",
+          "9",
+          "14",
+          "4.666666666666667"
+        ]
+      ]
+    },
+    {
+      "name": "array_contains_length_extract",
+      "cypher": "RETURN array_contains(array_value(10, 20, 30), 20) AS has_twenty, array_length(array_value(10, 20, 30)) AS len, array_extract(array_value(10, 20, 30), 3) AS third",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_twenty",
+        "len",
+        "third"
+      ],
+      "rows": [
+        [
+          "True",
+          "3",
+          "30"
+        ]
+      ]
+    },
+    {
+      "name": "array_push_and_pop",
+      "cypher": "RETURN array_extract(array_pop_front(array_push_front(array_value(2, 3), 1)), 1) AS first_after_pop_front, array_extract(array_pop_back(array_push_back(array_value(1, 2), 3)), 2) AS second_after_pop_back",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "first_after_pop_front",
+        "second_after_pop_back"
+      ],
+      "rows": [
+        [
+          "2",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "array_unique_and_reverse",
+      "cypher": "RETURN array_length(array_unique(array_value(1, 2, 2, 3, 3))) AS unique_len, array_extract(array_reverse(array_value(1, 2, 3)), 1) AS reversed_first",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "unique_len",
+        "reversed_first"
+      ],
+      "rows": [
+        [
+          "3",
+          "3"
+        ]
+      ]
+    }
+  ]
+}

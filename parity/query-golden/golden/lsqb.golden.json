@@ -1,0 +1,62 @@
+﻿{
+  "corpus": "corpus-lsqb.cypher",
+  "blessedAt": "2026-04-02T02:51:35.2828890Z",
+  "queries": [
+    {
+      "name": "lsqb_q1",
+      "cypher": "MATCH (city:City)\u003C-[:IS_LOCATED_IN]-(u:University)\u003C-[:STUDIES_AT]-(p:Person)\u003C-[:HAS_CREATOR]-(m1:Message)-[:REPLY_OF]-\u003E(m2:Message)-[:HAS_TAG]-\u003E(t:Tag) RETURN count(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "lsqb_q2_triangle",
+      "cypher": "MATCH (p1:Person)-[:KNOWS]-\u003E(p2:Person)\u003C-[:HAS_CREATOR]-(m:Message)-[:HAS_CREATOR]-\u003E(p1) RETURN count(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "lsqb_q3",
+      "cypher": "MATCH (city1:City)\u003C-[:IS_LOCATED_IN]-(u:University)\u003C-[:STUDIES_AT]-(p1:Person)-[:KNOWS]-\u003E(p2:Person)-[:KNOWS]-\u003E(p3:Person)-[:WORKS_AT]-\u003E(c:Company)-[:IS_LOCATED_IN]-\u003E(country:Country) RETURN count(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "lsqb_q4",
+      "cypher": "MATCH (t:Tag)\u003C-[:HAS_TAG]-(m:Message)-[:HAS_CREATOR]-\u003E(p:Person)-[:KNOWS]-\u003E(p2:Person)\u003C-[:HAS_CREATOR]-(m2:Message)-[:REPLY_OF]-\u003E(m3:Message)-[:HAS_TAG]-\u003E(t2:Tag) RETURN count(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    }
+  ]
+}

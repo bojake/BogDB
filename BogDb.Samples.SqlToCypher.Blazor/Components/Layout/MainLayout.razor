@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <span class="sidebar-logo-icon">🔄</span>
+                <div>
+                    <div class="sidebar-logo-title">SQL → Cypher</div>
+                    <div class="sidebar-logo-sub">Graph Query Learning · BogDB</div>
+                </div>
+            </a>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section-label">Learn</div>
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <span class="nav-link-icon">🏠</span> Home &amp; Schema
+            </NavLink>
+            <NavLink class="nav-link" href="/lessons">
+                <span class="nav-link-icon">📖</span> SQL → Cypher Lessons
+            </NavLink>
+            <div class="nav-section-label">Practice</div>
+            <NavLink class="nav-link" href="/querylab">
+                <span class="nav-link-icon">⌨️</span> Query Lab
+            </NavLink>
+            <NavLink class="nav-link" href="/concepts">
+                <span class="nav-link-icon">🗺️</span> Concept Guide
+            </NavLink>
+        </div>
+        <div class="sidebar-footer">BogDB · WS35 · SQL→Cypher</div>
+    </nav>
+    <main class="main-content">
+        @Body
+    </main>
+</div>

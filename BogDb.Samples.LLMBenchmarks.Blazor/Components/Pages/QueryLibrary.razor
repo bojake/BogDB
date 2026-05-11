@@ -1,0 +1,91 @@
+@page "/library"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<PageTitle>Query Library · BogDB LLM Explorer</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Query Library</h1>
+    <p class="page-subtitle">10 showcase Cypher queries — click any card to open it in the editor</p>
+</div>
+
+<div class="page-body">
+
+    <div class="filter-bar">
+        <input class="search-input" type="text" placeholder="Filter queries…" @bind="_filter" @bind:event="oninput" />
+
+        @foreach (var tag in AllTags)
+        {
+            <button class="btn @(_selectedTag == tag ? "btn-primary" : "btn-secondary") btn-sm"
+                    @onclick="() => ToggleTag(tag)">
+                @tag
+            </button>
+        }
+
+        @if (_filter.Length > 0 || _selectedTag is not null)
+        {
+            <button class="btn btn-secondary btn-sm" @onclick="ClearFilters">✕ Clear</button>
+        }
+    </div>
+
+    <div class="query-grid">
+        @foreach (var q in Filtered)
+        {
+            var query = q;
+            <div class="query-card" @onclick="() => OpenQuery(query)">
+                <div class="query-card-title">@query.Title</div>
+                <div class="query-card-desc">@query.Description</div>
+                <pre class="query-preview">@query.Cypher</pre>
+                <div class="query-card-footer">
+                    <span class="badge @TagBadge(query.Tag)">@query.Tag</span>
+                    <span class="btn btn-secondary btn-sm">Open →</span>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Filtered.Any())
+    {
+        <div style="color:var(--text-3);font-size:13px;padding:32px 0;text-align:center;">
+            No queries match the current filter.
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly List<ShowcaseQuery> _all = BenchmarkGraphService.GetShowcaseQueries();
+    private string _filter = "";
+    private string? _selectedTag;
+
+    private static IEnumerable<string> AllTags =>
+        _all.Select(q => q.Tag).Distinct().OrderBy(t => t);
+
+    private IEnumerable<ShowcaseQuery> Filtered => _all
+        .Where(q => _filter.Length == 0 ||
+                    q.Title.Contains(_filter, StringComparison.OrdinalIgnoreCase) ||
+                    q.Description.Contains(_filter, StringComparison.OrdinalIgnoreCase) ||
+                    q.Cypher.Contains(_filter, StringComparison.OrdinalIgnoreCase))
+        .Where(q => _selectedTag is null || q.Tag == _selectedTag);
+
+    private void ToggleTag(string tag)
+        => _selectedTag = _selectedTag == tag ? null : tag;
+
+    private void ClearFilters()
+    {
+        _filter = "";
+        _selectedTag = null;
+    }
+
+    private void OpenQuery(ShowcaseQuery q)
+        => Nav.NavigateTo($"/query?q={Uri.EscapeDataString(q.Cypher)}");
+
+    private static string TagBadge(string tag) => tag switch
+    {
+        "aggregation"    => "badge-purple",
+        "graph-traversal"=> "badge-cyan",
+        "filter"         => "badge-green",
+        "window"         => "badge-yellow",
+        "topk"           => "badge-yellow",
+        _                => "badge-gray",
+    };
+}

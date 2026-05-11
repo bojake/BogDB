@@ -1,0 +1,190 @@
+﻿{
+  "corpus": "corpus-serial-sequence.cypher",
+  "blessedAt": "2026-03-30T20:06:26.7984875Z",
+  "queries": [
+    {
+      "name": "nextval_first_call",
+      "cypher": "RETURN nextval(\u0027seq_a\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_second_call",
+      "cypher": "RETURN nextval(\u0027seq_a\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_third_call",
+      "cypher": "RETURN nextval(\u0027seq_a\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "6"
+        ]
+      ]
+    },
+    {
+      "name": "currval_after_nextval",
+      "cypher": "RETURN currval(\u0027seq_a\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "6"
+        ]
+      ]
+    },
+    {
+      "name": "currval_before_any_nextval",
+      "cypher": "RETURN currval(\u0027seq_b\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_independent_sequences",
+      "cypher": "RETURN nextval(\u0027seq_c\u0027) AS c, nextval(\u0027seq_d\u0027) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c",
+        "d"
+      ],
+      "rows": [
+        [
+          "2",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "setval_reset",
+      "cypher": "RETURN setval(\u0027seq_e\u0027, 100) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "100"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_after_setval",
+      "cypher": "RETURN nextval(\u0027seq_e\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "102"
+        ]
+      ]
+    },
+    {
+      "name": "currval_after_setval_nextval",
+      "cypher": "RETURN currval(\u0027seq_e\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "102"
+        ]
+      ]
+    },
+    {
+      "name": "setval_to_zero",
+      "cypher": "RETURN setval(\u0027seq_f\u0027, 0) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_from_zero",
+      "cypher": "RETURN nextval(\u0027seq_f\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_is_not_null",
+      "cypher": "RETURN nextval(\u0027seq_g\u0027) IS NOT NULL AS has_value",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_value"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "nextval_returns_integer",
+      "cypher": "RETURN nextval(\u0027seq_h\u0027) \u003E 0 OR nextval(\u0027seq_h\u0027) = 1 AS ok",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ok"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    }
+  ]
+}

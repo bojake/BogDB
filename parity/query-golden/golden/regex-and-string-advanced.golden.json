@@ -1,0 +1,692 @@
+﻿{
+  "corpus": "corpus-regex-and-string-advanced.cypher",
+  "blessedAt": "2026-03-27T13:27:04.2340150Z",
+  "queries": [
+    {
+      "name": "levenshtein_same",
+      "cypher": "RETURN levenshtein(\u0027kitten\u0027, \u0027kitten\u0027) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "levenshtein_diff",
+      "cypher": "RETURN levenshtein(\u0027kitten\u0027, \u0027sitting\u0027) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "levenshtein_empty",
+      "cypher": "RETURN levenshtein(\u0027\u0027, \u0027abc\u0027) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "editdistance_alias",
+      "cypher": "RETURN editdistance(\u0027abc\u0027, \u0027aXc\u0027) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "initcap_basic",
+      "cypher": "RETURN initcap(\u0027hello world\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Hello World"
+        ]
+      ]
+    },
+    {
+      "name": "initcap_mixed",
+      "cypher": "RETURN initcap(\u0027UPPER lower MIXED\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Upper Lower Mixed"
+        ]
+      ]
+    },
+    {
+      "name": "concat_ws_comma",
+      "cypher": "RETURN concat_ws(\u0027, \u0027, \u0027Alice\u0027, \u0027Bob\u0027, \u0027Carol\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Alice, Bob, Carol"
+        ]
+      ]
+    },
+    {
+      "name": "concat_ws_dash",
+      "cypher": "RETURN concat_ws(\u0027-\u0027, \u00272024\u0027, \u002707\u0027, \u002715\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2024-07-15"
+        ]
+      ]
+    },
+    {
+      "name": "concat_ws_empty_sep",
+      "cypher": "RETURN concat_ws(\u0027\u0027, \u0027foo\u0027, \u0027bar\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "foobar"
+        ]
+      ]
+    },
+    {
+      "name": "split_part_first",
+      "cypher": "RETURN split_part(\u0027a,b,c\u0027, \u0027,\u0027, 1) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "a"
+        ]
+      ]
+    },
+    {
+      "name": "split_part_middle",
+      "cypher": "RETURN split_part(\u0027a,b,c\u0027, \u0027,\u0027, 2) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "b"
+        ]
+      ]
+    },
+    {
+      "name": "split_part_last",
+      "cypher": "RETURN split_part(\u0027a,b,c\u0027, \u0027,\u0027, 3) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "c"
+        ]
+      ]
+    },
+    {
+      "name": "printf_string",
+      "cypher": "RETURN printf(\u0027Hello, %s!\u0027, \u0027World\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Hello, World!"
+        ]
+      ]
+    },
+    {
+      "name": "printf_int",
+      "cypher": "RETURN printf(\u0027Count: %d\u0027, 42) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Count: 42"
+        ]
+      ]
+    },
+    {
+      "name": "printf_float",
+      "cypher": "RETURN printf(\u0027Pi: %.2f\u0027, 3.14159) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Pi: 3.14"
+        ]
+      ]
+    },
+    {
+      "name": "printf_hex",
+      "cypher": "RETURN printf(\u0027Hex: %x\u0027, 255) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Hex: ff"
+        ]
+      ]
+    },
+    {
+      "name": "printf_octal",
+      "cypher": "RETURN printf(\u0027Oct: %o\u0027, 8) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Oct: 10"
+        ]
+      ]
+    },
+    {
+      "name": "printf_percent_escape",
+      "cypher": "RETURN printf(\u0027100%%\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "100%"
+        ]
+      ]
+    },
+    {
+      "name": "printf_multi_arg",
+      "cypher": "RETURN printf(\u0027%s is %d years old\u0027, \u0027Alice\u0027, 30) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Alice is 30 years old"
+        ]
+      ]
+    },
+    {
+      "name": "format_alias",
+      "cypher": "RETURN format(\u0027%d \u002B %d = %d\u0027, 1, 2, 3) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "1 \u002B 2 = 3"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_full_match_true",
+      "cypher": "RETURN regexp_full_match(\u0027hello123\u0027, \u0027[a-z]\u002B[0-9]\u002B\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_full_match_false",
+      "cypher": "RETURN regexp_full_match(\u0027hello123!\u0027, \u0027[a-z]\u002B[0-9]\u002B\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_replace_basic",
+      "cypher": "RETURN regexp_replace(\u0027foo bar foo\u0027, \u0027foo\u0027, \u0027baz\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "baz bar baz"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_replace_digits",
+      "cypher": "RETURN regexp_replace(\u0027price: 42 dollars\u0027, \u0027[0-9]\u002B\u0027, \u0027N\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "price: N dollars"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_extract_group0",
+      "cypher": "RETURN regexp_extract(\u00272024-07-15\u0027, \u0027[0-9]\u002B\u0027, 0) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2024"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_extract_no_match",
+      "cypher": "RETURN regexp_extract(\u0027hello\u0027, \u0027[0-9]\u002B\u0027, 0) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "regexp_split_to_array",
+      "cypher": "RETURN regexp_split_to_array(\u0027one two  three\u0027, \u0027\\\\s\u002B\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "[\u0022one\u0022,\u0022two\u0022,\u0022three\u0022]"
+        ]
+      ]
+    },
+    {
+      "name": "base64_encode",
+      "cypher": "RETURN base64_encode(\u0027hello\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "aGVsbG8="
+        ]
+      ]
+    },
+    {
+      "name": "base64_decode",
+      "cypher": "RETURN base64_decode(\u0027aGVsbG8=\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "hello"
+        ]
+      ]
+    },
+    {
+      "name": "base64_roundtrip",
+      "cypher": "RETURN base64_decode(base64_encode(\u0027round trip test\u0027)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "round trip test"
+        ]
+      ]
+    },
+    {
+      "name": "url_encode",
+      "cypher": "RETURN url_encode(\u0027hello world \u0026 more\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "hello%20world%20%26%20more"
+        ]
+      ]
+    },
+    {
+      "name": "url_decode",
+      "cypher": "RETURN url_decode(\u0027hello%20world%20%26%20more\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "hello world \u0026 more"
+        ]
+      ]
+    },
+    {
+      "name": "to_hex_255",
+      "cypher": "RETURN to_hex(255) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "ff"
+        ]
+      ]
+    },
+    {
+      "name": "to_hex_16",
+      "cypher": "RETURN to_hex(16) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "from_hex",
+      "cypher": "RETURN from_hex(\u0027ff\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "255"
+        ]
+      ]
+    },
+    {
+      "name": "hex_roundtrip",
+      "cypher": "RETURN from_hex(to_hex(1234)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "1234"
+        ]
+      ]
+    },
+    {
+      "name": "bit_length_ascii",
+      "cypher": "RETURN bit_length(\u0027hello\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "40"
+        ]
+      ]
+    },
+    {
+      "name": "octet_length_string",
+      "cypher": "RETURN octet_length(\u0027hello\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "position_found",
+      "cypher": "RETURN position(\u0027hello world\u0027, \u0027world\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "7"
+        ]
+      ]
+    },
+    {
+      "name": "position_not_found",
+      "cypher": "RETURN position(\u0027hello\u0027, \u0027xyz\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "locate_alias",
+      "cypher": "RETURN locate(\u0027abcdef\u0027, \u0027cd\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "instr_alias",
+      "cypher": "RETURN instr(\u0027foobar\u0027, \u0027bar\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "left_basic",
+      "cypher": "RETURN left(\u0027hello world\u0027, 5) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "hello"
+        ]
+      ]
+    },
+    {
+      "name": "right_basic",
+      "cypher": "RETURN right(\u0027hello world\u0027, 5) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "world"
+        ]
+      ]
+    },
+    {
+      "name": "left_exceeds",
+      "cypher": "RETURN left(\u0027hi\u0027, 100) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "hi"
+        ]
+      ]
+    },
+    {
+      "name": "ascii_basic",
+      "cypher": "RETURN ascii(\u0027A\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "65"
+        ]
+      ]
+    },
+    {
+      "name": "unicode_alias",
+      "cypher": "RETURN unicode(\u0027Z\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "90"
+        ]
+      ]
+    },
+    {
+      "name": "chr_basic",
+      "cypher": "RETURN chr(65) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "A"
+        ]
+      ]
+    },
+    {
+      "name": "chr_roundtrip",
+      "cypher": "RETURN chr(ascii(\u0027Q\u0027)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Q"
+        ]
+      ]
+    }
+  ]
+}

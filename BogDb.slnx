@@ -1,0 +1,21 @@
+<Solution>
+  <Project Path="BogDb.Core/BogDb.Core.csproj" />
+  <Project Path="BogDb.Extensions.Algo/BogDb.Extensions.Algo.csproj" />
+  <Project Path="BogDb.Extensions.Demo/BogDb.Extensions.Demo.csproj" />
+  <Project Path="BogDb.Extensions.DuckDB/BogDb.Extensions.DuckDB.csproj" />
+  <Project Path="BogDb.Extensions.FTS/BogDb.Extensions.FTS.csproj" />
+  <Project Path="BogDb.Extensions.HttpFS/BogDb.Extensions.HttpFS.csproj" />
+  <Project Path="BogDb.Extensions.Json/BogDb.Extensions.Json.csproj" />
+  <Project Path="BogDb.Extensions.LLM/BogDb.Extensions.LLM.csproj" />
+  <Project Path="BogDb.Extensions.Postgres/BogDb.Extensions.Postgres.csproj" />
+  <Project Path="BogDb.Extensions.SQLite/BogDb.Extensions.SQLite.csproj" />
+  <Project Path="BogDb.Extensions.Vector/BogDb.Extensions.Vector.csproj" />
+  <Project Path="BogDb.Mcp.Codegen.Server/BogDb.Mcp.Codegen.Server.csproj" />
+  <Project Path="BogDb.Mcp.Server/BogDb.Mcp.Server.csproj" />
+  <Project Path="BogDb.Samples.FraudGraph.Console/BogDb.Samples.FraudGraph.Console.csproj" />
+  <Project Path="BogDb.Samples.LLMBenchmarks.Blazor/BogDb.Samples.LLMBenchmarks.Blazor.csproj" />
+  <Project Path="BogDb.Samples.SqlToCypher.Blazor/BogDb.Samples.SqlToCypher.Blazor.csproj" />
+  <Project Path="BogDb.Samples.TacticalMessaging.Blazor/BogDb.Samples.TacticalMessaging.Blazor.csproj" />
+  <Project Path="BogDb.Tests.ProcessHost/BogDb.Tests.ProcessHost.csproj" />
+  <Project Path="BogDb.Tests/BogDb.Tests.csproj" />
+</Solution>

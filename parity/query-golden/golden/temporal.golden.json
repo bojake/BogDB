@@ -1,0 +1,120 @@
+﻿{
+  "corpus": "corpus-temporal.cypher",
+  "blessedAt": "2026-03-22T01:18:28.7303108Z",
+  "queries": [
+    {
+      "name": "date_parse",
+      "cypher": "RETURN date(\u00272024-03-19\u0027) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "d"
+      ],
+      "rows": [
+        [
+          "2024-03-19"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_parse",
+      "cypher": "RETURN timestamp(\u00272024-03-19T10:30:00Z\u0027) AS ts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ts"
+      ],
+      "rows": [
+        [
+          "2024-03-19T10:30:00Z"
+        ]
+      ]
+    },
+    {
+      "name": "make_date_basic",
+      "cypher": "RETURN make_date(2024, 3, 19) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "d"
+      ],
+      "rows": [
+        [
+          "2024-03-19"
+        ]
+      ]
+    },
+    {
+      "name": "make_timestamp_basic",
+      "cypher": "RETURN make_timestamp(2024, 3, 19, 10, 30, 0) AS ts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ts"
+      ],
+      "rows": [
+        [
+          "2024-03-19T10:30:00.0000000Z"
+        ]
+      ]
+    },
+    {
+      "name": "date_part_quarter",
+      "cypher": "RETURN date_part(\u0027quarter\u0027, \u00272024-01-15\u0027) AS q",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "q"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "date_trunc_month",
+      "cypher": "RETURN date_trunc(\u0027month\u0027, \u00272024-03-19\u0027) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "d"
+      ],
+      "rows": [
+        [
+          "2024-03-01T00:00:00.0000000Z"
+        ]
+      ]
+    },
+    {
+      "name": "to_epoch_ms_basic",
+      "cypher": "RETURN to_epoch_ms(\u00272024-01-01 00:00:00\u0027) AS ms",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ms"
+      ],
+      "rows": [
+        [
+          "1704067200000"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_parts",
+      "cypher": "RETURN timestamp_year(\u00272026-03-20 12:00:00\u0027) AS y, timestamp_month(\u00272026-03-20 12:00:00\u0027) AS m",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "y",
+        "m"
+      ],
+      "rows": [
+        [
+          "2026",
+          "3"
+        ]
+      ]
+    }
+  ]
+}

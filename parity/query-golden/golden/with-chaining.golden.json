@@ -1,0 +1,208 @@
+﻿{
+  "corpus": "corpus-with-chaining.cypher",
+  "blessedAt": "2026-03-22T13:44:23.8408980Z",
+  "queries": [
+    {
+      "name": "with_computed_filter",
+      "cypher": "MATCH (s:Sale) WITH s.region AS region, s.amount AS amt WHERE amt \u003E 200 RETURN region, amt ORDER BY region, amt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "region",
+        "amt"
+      ],
+      "rows": [
+        [
+          "east",
+          "300"
+        ],
+        [
+          "south",
+          "350"
+        ],
+        [
+          "south",
+          "400"
+        ],
+        [
+          "west",
+          "250"
+        ]
+      ]
+    },
+    {
+      "name": "with_aggregation_stage",
+      "cypher": "MATCH (s:Sale) WITH s.region AS region, SUM(s.amount) AS total RETURN region, total ORDER BY region",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "region",
+        "total"
+      ],
+      "rows": [
+        [
+          "east",
+          "680"
+        ],
+        [
+          "south",
+          "750"
+        ],
+        [
+          "west",
+          "500"
+        ]
+      ]
+    },
+    {
+      "name": "with_having_equivalent",
+      "cypher": "MATCH (s:Sale) WITH s.region AS region, COUNT(*) AS cnt WHERE cnt \u003E 1 RETURN region, cnt ORDER BY region",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "region",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "east",
+          "3"
+        ],
+        [
+          "south",
+          "2"
+        ],
+        [
+          "west",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "with_double_aggregate",
+      "cypher": "MATCH (s:Sale) WITH s.year AS yr, SUM(s.amount) AS yr_total WITH AVG(yr_total) AS avg_year_total RETURN avg_year_total",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "avg_year_total"
+      ],
+      "rows": [
+        [
+          "643.33333333333337"
+        ]
+      ]
+    },
+    {
+      "name": "with_limit_in_pipe",
+      "cypher": "MATCH (s:Sale) WITH s.id AS id, s.amount AS amt ORDER BY amt DESC LIMIT 3 RETURN id, amt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "amt"
+      ],
+      "rows": [
+        [
+          "4",
+          "300"
+        ],
+        [
+          "6",
+          "400"
+        ],
+        [
+          "7",
+          "350"
+        ]
+      ]
+    },
+    {
+      "name": "with_rename_and_reuse",
+      "cypher": "MATCH (s:Sale) WITH s.amount * 2 AS doubled, s.region AS r RETURN r, doubled ORDER BY r, doubled",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r",
+        "doubled"
+      ],
+      "rows": [
+        [
+          "east",
+          "360"
+        ],
+        [
+          "east",
+          "400"
+        ],
+        [
+          "east",
+          "600"
+        ],
+        [
+          "south",
+          "700"
+        ],
+        [
+          "south",
+          "800"
+        ],
+        [
+          "west",
+          "200"
+        ],
+        [
+          "west",
+          "300"
+        ],
+        [
+          "west",
+          "500"
+        ]
+      ]
+    },
+    {
+      "name": "with_chained_filter_and_count",
+      "cypher": "MATCH (s:Sale) WITH s.year AS yr, s.amount AS amt WHERE yr \u003E= 2022 WITH yr, COUNT(*) AS cnt RETURN yr, cnt ORDER BY yr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "yr",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "2022",
+          "3"
+        ],
+        [
+          "2023",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "with_max_per_region",
+      "cypher": "MATCH (s:Sale) WITH s.region AS region, MAX(s.amount) AS peak RETURN region, peak ORDER BY region",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "region",
+        "peak"
+      ],
+      "rows": [
+        [
+          "east",
+          "300"
+        ],
+        [
+          "south",
+          "400"
+        ],
+        [
+          "west",
+          "250"
+        ]
+      ]
+    }
+  ]
+}

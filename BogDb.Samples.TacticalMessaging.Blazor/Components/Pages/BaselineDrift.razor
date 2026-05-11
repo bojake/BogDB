@@ -1,0 +1,105 @@
+@page "/drift"
+@inject TacticalMessagingGraphService Graph
+@inject IJSRuntime JS
+
+<div class="page-header">
+    <h1 class="page-title">📊 Baseline Drift</h1>
+    <p class="page-sub">Compare two baselines to identify node and relationship deltas using GraphShardLocalRuntime</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Compare Baselines</h2>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+            <select class="form-select" @bind="_fromBaseline">
+                @foreach (var bl in _baselines) { <option value="@bl.ExtId">@bl.Label</option> }
+            </select>
+            <span class="text-muted">→</span>
+            <select class="form-select" @bind="_toBaseline">
+                @foreach (var bl in _baselines) { <option value="@bl.ExtId">@bl.Label</option> }
+            </select>
+            <button class="btn btn-accent" @onclick="ComputeDrift">Compare</button>
+        </div>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="loading">Computing drift…</div>
+}
+else if (_drift is not null)
+{
+    <div class="stat-grid">
+        <div class="stat-card accent-green"><span class="stat-value">@_drift.AddedNodes</span><span class="stat-label">Added Nodes</span></div>
+        <div class="stat-card accent-red"><span class="stat-value">@_drift.RemovedNodes</span><span class="stat-label">Removed Nodes</span></div>
+        <div class="stat-card accent-teal"><span class="stat-value">@_drift.AddedRels</span><span class="stat-label">Added Rels</span></div>
+        <div class="stat-card accent-orange"><span class="stat-value">@_drift.RemovedRels</span><span class="stat-label">Removed Rels</span></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2 class="card-title">Overview</h2></div>
+        <p style="color:var(--text-secondary);font-size:0.85rem;">@_drift.OverviewLabel</p>
+    </div>
+
+    <div class="two-col">
+        <div class="card">
+            <div class="card-header"><h2 class="card-title text-green">Top Gaining</h2></div>
+            @if (_drift.TopGaining.Count > 0)
+            {
+                <table class="data-table">
+                    <thead><tr><th>Table</th><th>Added</th><th>Removed</th><th>Net</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in _drift.TopGaining)
+                    {
+                        <tr><td>@r.Key</td><td class="text-green">+@r.AddedCount</td><td class="text-red">-@r.RemovedCount</td><td>@r.NetDelta</td></tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else { <p class="text-muted" style="font-size:0.82rem;">No gaining tables</p> }
+        </div>
+        <div class="card">
+            <div class="card-header"><h2 class="card-title text-red">Top Declining</h2></div>
+            @if (_drift.TopDeclining.Count > 0)
+            {
+                <table class="data-table">
+                    <thead><tr><th>Table</th><th>Added</th><th>Removed</th><th>Net</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in _drift.TopDeclining)
+                    {
+                        <tr><td>@r.Key</td><td class="text-green">+@r.AddedCount</td><td class="text-red">-@r.RemovedCount</td><td>@r.NetDelta</td></tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else { <p class="text-muted" style="font-size:0.82rem;">No declining tables</p> }
+        </div>
+    </div>
+}
+
+@code {
+    private List<BaselineInfo> _baselines = [];
+    private string _fromBaseline = "";
+    private string _toBaseline = "";
+    private BaselineDriftSummary? _drift;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _baselines = Graph.GetBaselines();
+        if (_baselines.Count >= 2)
+        {
+            _fromBaseline = _baselines[0].ExtId;
+            _toBaseline = _baselines[1].ExtId;
+            await ComputeDrift();
+        }
+    }
+
+    private async Task ComputeDrift()
+    {
+        if (_fromBaseline == _toBaseline) return;
+        _loading = true; StateHasChanged(); await Task.Yield();
+        _drift = Graph.GetBaselineDrift(_fromBaseline, _toBaseline);
+        _loading = false;
+    }
+}

@@ -1,0 +1,170 @@
+﻿{
+  "corpus": "corpus-filter.cypher",
+  "blessedAt": "2026-04-04T23:49:24.6823660Z",
+  "queries": [
+    {
+      "name": "arithmetic_gt",
+      "cypher": "MATCH (i:Item) WHERE i.price \u003E 5 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Blueberry"
+        ],
+        [
+          "Cherry"
+        ]
+      ]
+    },
+    {
+      "name": "arithmetic_between",
+      "cypher": "MATCH (i:Item) WHERE i.price \u003E= 2 AND i.price \u003C= 5 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Apple"
+        ],
+        [
+          "Apricot"
+        ],
+        [
+          "Citrus"
+        ]
+      ]
+    },
+    {
+      "name": "arithmetic_computed",
+      "cypher": "MATCH (i:Item) RETURN i.name, i.price * i.qty AS total ORDER BY total DESC",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name",
+        "total"
+      ],
+      "rows": [
+        [
+          "Apple",
+          "300"
+        ],
+        [
+          "Apricot",
+          "375"
+        ],
+        [
+          "Banana",
+          "200"
+        ],
+        [
+          "Blueberry",
+          "360"
+        ],
+        [
+          "Cherry",
+          "400"
+        ],
+        [
+          "Citrus",
+          "300"
+        ]
+      ]
+    },
+    {
+      "name": "string_starts_with",
+      "cypher": "MATCH (i:Item) WHERE i.name STARTS WITH \u0027A\u0027 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Apple"
+        ],
+        [
+          "Apricot"
+        ]
+      ]
+    },
+    {
+      "name": "string_ends_with",
+      "cypher": "MATCH (i:Item) WHERE i.name ENDS WITH \u0027y\u0027 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Blueberry"
+        ],
+        [
+          "Cherry"
+        ]
+      ]
+    },
+    {
+      "name": "string_contains",
+      "cypher": "MATCH (i:Item) WHERE i.name CONTAINS \u0027rr\u0027 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Blueberry"
+        ],
+        [
+          "Cherry"
+        ]
+      ]
+    },
+    {
+      "name": "boolean_or",
+      "cypher": "MATCH (i:Item) WHERE i.price \u003C 2 OR i.price \u003E 10 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Banana"
+        ],
+        [
+          "Blueberry"
+        ]
+      ]
+    },
+    {
+      "name": "boolean_not",
+      "cypher": "MATCH (i:Item) WHERE NOT i.price \u003E 5 RETURN i.name ORDER BY i.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.name"
+      ],
+      "rows": [
+        [
+          "Apple"
+        ],
+        [
+          "Apricot"
+        ],
+        [
+          "Banana"
+        ],
+        [
+          "Citrus"
+        ]
+      ]
+    }
+  ]
+}

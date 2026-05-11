@@ -1,0 +1,102 @@
+﻿{
+  "corpus": "corpus-errors.cypher",
+  "blessedAt": "2026-04-08T02:37:01.7923100Z",
+  "queries": [
+    {
+      "name": "commit_without_begin",
+      "cypher": "COMMIT",
+      "isSuccess": false,
+      "errorMessage": "Cannot COMMIT: no active transaction.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "rollback_without_begin",
+      "cypher": "ROLLBACK",
+      "isSuccess": false,
+      "errorMessage": "Cannot ROLLBACK: no active transaction.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "unknown_label",
+      "cypher": "MATCH (p:Ghost) RETURN p.id",
+      "isSuccess": false,
+      "errorMessage": "Node table \u0027Ghost\u0027 does not exist in the catalog.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "unknown_property",
+      "cypher": "MATCH (p:Person) RETURN p.age",
+      "isSuccess": false,
+      "errorMessage": "Property \u0027age\u0027 not found on node \u0027p\u0027 (tables: Person).",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "unknown_variable",
+      "cypher": "MATCH (p:Person) RETURN x",
+      "isSuccess": false,
+      "errorMessage": "Variable \u0027x\u0027 is not in scope. Available: p",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "unknown_relationship",
+      "cypher": "MATCH (p:Person)-[r:KNOWS]-\u003E(q:Person) RETURN r",
+      "isSuccess": false,
+      "errorMessage": "Relationship table \u0027KNOWS\u0027 does not exist.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "invalid_syntax",
+      "cypher": "THIS IS NOT CYPHER",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 0: extraneous input \u0027THIS\u0027 expecting {ALTER, ATTACH, BEGIN, CALL, CHECKPOINT, COMMENT, COMMIT, COPY, CREATE, DELETE, DETACH, DROP, EXPLAIN, EXPORT, FORCE, IMPORT, INSTALL, LOAD, MATCH, MERGE, OPTIONAL, PROFILE, RETURN, ROLLBACK, SET, UNWIND, UNINSTALL, UPDATE, USE, WITH, SP}\nSyntax error at line 1, column 5: mismatched input \u0027IS\u0027 expecting {ALTER, ATTACH, BEGIN, CALL, CHECKPOINT, COMMENT, COMMIT, COPY, CREATE, DELETE, DETACH, DROP, EXPORT, FORCE, IMPORT, INSTALL, LOAD, MATCH, MERGE, OPTIONAL, RETURN, ROLLBACK, SET, UNWIND, UNINSTALL, UPDATE, USE, WITH}",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "non_constant_skip",
+      "cypher": "MATCH (p:Person) RETURN p.id SKIP p.id",
+      "isSuccess": false,
+      "errorMessage": "The expression in a SKIP clause must evaluate to a constant or a parameter.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "non_constant_limit",
+      "cypher": "MATCH (p:Person) RETURN p.id LIMIT p.id",
+      "isSuccess": false,
+      "errorMessage": "The expression in a LIMIT clause must evaluate to a constant or a parameter.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "distinct_order_by_not_projected",
+      "cypher": "MATCH (p:Person) RETURN DISTINCT p.name ORDER BY p.id",
+      "isSuccess": false,
+      "errorMessage": "In a WITH/RETURN with DISTINCT, all expressions in ORDER BY must appear in the projection.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "compare_string_to_int",
+      "cypher": "MATCH (p:Person) WHERE p.name \u003E 1 RETURN p.id",
+      "isSuccess": false,
+      "errorMessage": "Cannot compare differing types: STRING and INT64",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "factorial_negative",
+      "cypher": "RETURN factorial(-1) AS bad_factorial",
+      "isSuccess": false,
+      "errorMessage": "Factorial of negative number.",
+      "columnNames": [],
+      "rows": []
+    }
+  ]
+}

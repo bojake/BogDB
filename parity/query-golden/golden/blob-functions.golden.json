@@ -1,0 +1,174 @@
+﻿{
+  "corpus": "corpus-blob-functions.cypher",
+  "blessedAt": "2026-03-27T13:13:52.0347670Z",
+  "queries": [
+    {
+      "name": "octet_length_ascii",
+      "cypher": "RETURN octet_length(\u0027hello\u0027) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "octet_length_empty",
+      "cypher": "RETURN octet_length(\u0027\u0027) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "octet_length_multibyte",
+      "cypher": "RETURN octet_length(\u0027caf\u00E9\u0027) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "octet_length_null",
+      "cypher": "RETURN octet_length(NULL) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "encode_ascii",
+      "cypher": "RETURN encode(\u0027hello\u0027) AS b",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "b"
+      ],
+      "rows": [
+        [
+          "System.Byte[]"
+        ]
+      ]
+    },
+    {
+      "name": "encode_empty",
+      "cypher": "RETURN encode(\u0027\u0027) AS b",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "b"
+      ],
+      "rows": [
+        [
+          "System.Byte[]"
+        ]
+      ]
+    },
+    {
+      "name": "encode_special_chars",
+      "cypher": "RETURN encode(\u0027foo bar baz\u0027) AS b",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "b"
+      ],
+      "rows": [
+        [
+          "System.Byte[]"
+        ]
+      ]
+    },
+    {
+      "name": "decode_ascii",
+      "cypher": "RETURN decode(\u0027hello world\u0027) AS s",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "s"
+      ],
+      "rows": [
+        [
+          "hello world"
+        ]
+      ]
+    },
+    {
+      "name": "decode_empty",
+      "cypher": "RETURN decode(\u0027\u0027) AS s",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "s"
+      ],
+      "rows": [
+        [
+          ""
+        ]
+      ]
+    },
+    {
+      "name": "decode_round_trip",
+      "cypher": "RETURN decode(encode(\u0027round trip\u0027)) AS s",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "s"
+      ],
+      "rows": [
+        [
+          "round trip"
+        ]
+      ]
+    },
+    {
+      "name": "decode_utf8_valid",
+      "cypher": "RETURN decode(encode(\u0027caf\\u00e9\u0027)) AS s",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "s"
+      ],
+      "rows": [
+        [
+          "caf\\u00e9"
+        ]
+      ]
+    },
+    {
+      "name": "octet_length_after_encode",
+      "cypher": "RETURN octet_length(encode(\u0027test\u0027)) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    }
+  ]
+}

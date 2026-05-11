@@ -1,0 +1,188 @@
+@page "/lessons"
+@rendermode InteractiveServer
+@inject SqlToCypherGraphService Svc
+
+<PageTitle>SQL → Cypher Lessons</PageTitle>
+
+<div class="page-header">
+    <h1>📖 SQL → Cypher Lessons</h1>
+    <p>Select a lesson to see the SQL and Cypher side-by-side. Modify the Cypher and run it live against the graph.</p>
+</div>
+
+<div class="lessons-shell">
+
+    <!-- ── Lesson list (left panel) ──────────────────────────────────────── -->
+    <div class="lesson-list-panel">
+
+        <div class="category-chips">
+            @foreach (var cat in _categories)
+            {
+                <button class="cat-chip @(_activeCategory == cat ? "active" : "")"
+                        @onclick="() => _activeCategory = cat">@cat</button>
+            }
+        </div>
+
+        @foreach (var lesson in _lessons.Where(l => _activeCategory == "All" || l.Category == _activeCategory))
+        {
+            <button class="lesson-item @(_selected?.Number == lesson.Number ? "active" : "")"
+                    @onclick="() => SelectLesson(lesson)">
+                <span class="lesson-num">@lesson.Number</span>
+                <div>
+                    <div class="lesson-title">@lesson.Title</div>
+                    <div class="lesson-concept">@lesson.Concept</div>
+                </div>
+                <span class="cat-tag cat-@lesson.Category.ToLower()">@lesson.Category</span>
+            </button>
+        }
+    </div>
+
+    <!-- ── Lesson detail (right panel) ──────────────────────────────────── -->
+    <div class="lesson-detail-panel">
+        @if (_selected is null)
+        {
+            <div class="lesson-empty">
+                <div style="font-size:48px">👈</div>
+                <div style="font-size:20px;font-weight:700;color:var(--amber-400);margin:12px 0 6px">Pick a lesson</div>
+                <div style="color:var(--text-muted)">Select any lesson from the list to see the SQL and Cypher side-by-side.</div>
+            </div>
+        }
+        else
+        {
+            <div class="lesson-header">
+                <span class="lesson-num-lg">@_selected.Number</span>
+                <div>
+                    <h2>@_selected.Title</h2>
+                    <p class="lesson-subtitle">@_selected.Concept</p>
+                </div>
+            </div>
+
+            <p class="lesson-explanation">@_selected.Explanation</p>
+
+            <!-- ── Side-by-side comparison ──────────────────────────────── -->
+            <div class="diff-row">
+                <div class="diff-pane sql-pane">
+                    <div class="pane-label">🗄️ SQL</div>
+                    <pre class="sql-block">@_selected.Sql.Trim()</pre>
+                </div>
+                <div class="diff-pane cypher-pane-wrap">
+                    <div class="pane-label">🔷 Cypher <span class="pane-hint">(editable — modify and run!)</span></div>
+                    <textarea id="cypher-lesson-input"
+                              class="cypher-editor"
+                              @bind="_editedCypher"
+                              spellcheck="false"></textarea>
+                    @if (_selected.ExpectedColumns is { Length: > 0 })
+                    {
+                        <div class="expected-hint">
+                            <span class="expected-label">Expected (canonical):</span>
+                            <span class="expected-cols">@string.Join(", ", _selected.ExpectedColumns)</span>
+                            <span class="expected-sep">·</span>
+                            <span class="expected-rows">@_selected.ExpectedRowCount row@(_selected.ExpectedRowCount == 1 ? "" : "s")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px">
+                <button id="btn-run-lesson" class="btn btn-primary" @onclick="RunLesson">▶ Run Cypher</button>
+                <button class="btn btn-ghost" @onclick="ResetCypher">↺ Reset</button>
+                @if (_result is not null)
+                {
+                    <span class="result-meta">
+                        @_result.Rows.Count row@(_result.Rows.Count == 1?"":"s") · @_result.ElapsedMs ms
+                    </span>
+                }
+            </div>
+
+            @if (_running)
+            {
+                <div class="loading"><div class="spinner"></div>Executing…</div>
+            }
+            else if (_result is not null)
+            {
+                if (!_result.IsSuccess)
+                {
+                    <div class="alert alert-error">@_result.Error</div>
+                }
+                else if (_result.Rows.Count == 0)
+                {
+                    <div class="alert alert-info">No rows returned.</div>
+                }
+                else
+                {
+                    <div class="results-table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>@foreach (var col in _result.Columns) { <th>@col</th> }</tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in _result.Rows.Take(100))
+                                {
+                                    <tr>
+                                        @foreach (var col in _result.Columns)
+                                        {
+                                            <td>@(row.TryGetValue(col,out var v) ? v?.ToString() ?? "null" : "")</td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+
+            <!-- ── Key differences callout ──────────────────────────────── -->
+            <div class="key-diffs">
+                <div class="key-diffs-title">💡 Key differences</div>
+                <ul>
+                    @foreach (var d in _selected.KeyDifferences)
+                    {
+                        <li>@d</li>
+                    }
+                </ul>
+            </div>
+
+            <!-- ── Try it prompt ────────────────────────────────────────── -->
+            <div class="try-it">
+                <span class="try-it-label">🧪 Try it!</span>
+                @_selected.TryItPrompt
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly List<Lesson> _lessons = SqlToCypherGraphService.GetLessons();
+    private readonly string[] _categories = ["All","Select","Filter","Sort & Limit","Count","Sum & Avg","Group By","One-Hop Join","Multi-Hop Join","Self Join","Transitive Hops","Shortest Path","Distinct","Exists Check","Collect","Anti-Join","Edge Properties","Variable-Length Path","Graph Algorithms"];
+    private string _activeCategory = "All";
+
+    private Lesson? _selected;
+    private string _editedCypher = "";
+    private QueryResult? _result;
+    private bool _running;
+
+    private void SelectLesson(Lesson lesson)
+    {
+        _selected = lesson;
+        _editedCypher = lesson.Cypher.Trim();
+        _result = null;
+    }
+
+    private void ResetCypher()
+    {
+        if (_selected is not null)
+        {
+            _editedCypher = _selected.Cypher.Trim();
+            _result = null;
+        }
+    }
+
+    private async Task RunLesson()
+    {
+        if (string.IsNullOrWhiteSpace(_editedCypher)) return;
+        _running = true;
+        StateHasChanged();
+        await Task.Yield();
+        _result = Svc.Execute(_editedCypher);
+        _running = false;
+    }
+}

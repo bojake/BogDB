@@ -1,0 +1,120 @@
+﻿{
+  "corpus": "corpus-functions.cypher",
+  "blessedAt": "2026-03-22T01:18:28.7303108Z",
+  "queries": [
+    {
+      "name": "coalesce_basic",
+      "cypher": "RETURN coalesce(NULL, \u0027fallback\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "fallback"
+        ]
+      ]
+    },
+    {
+      "name": "ifnull_basic",
+      "cypher": "RETURN ifnull(NULL, 42) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "nullif_equal",
+      "cypher": "RETURN nullif(5, 5) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "typeof_int64",
+      "cypher": "RETURN typeof(42) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "INT64"
+        ]
+      ]
+    },
+    {
+      "name": "printf_integer",
+      "cypher": "RETURN printf(\u0027Value: %d\u0027, 42) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Value: 42"
+        ]
+      ]
+    },
+    {
+      "name": "base64_roundtrip",
+      "cypher": "RETURN base64_decode(base64_encode(\u0027Hello BogDb\u0027)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "Hello BogDb"
+        ]
+      ]
+    },
+    {
+      "name": "hex_roundtrip",
+      "cypher": "RETURN from_hex(to_hex(255)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "255"
+        ]
+      ]
+    },
+    {
+      "name": "bit_and_octet_length",
+      "cypher": "RETURN bit_length(\u0027abc\u0027) AS bits, octet_length(\u0027abc\u0027) AS octets",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "bits",
+        "octets"
+      ],
+      "rows": [
+        [
+          "24",
+          "3"
+        ]
+      ]
+    }
+  ]
+}

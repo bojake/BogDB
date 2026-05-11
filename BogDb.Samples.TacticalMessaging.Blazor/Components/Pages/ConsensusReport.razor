@@ -1,0 +1,69 @@
+@page "/consensus"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">🔗 Consensus Report</h1>
+    <p class="page-sub">Identifies nodes impacted persistently across all baseline comparisons — the signal that survives every snapshot</p>
+</div>
+
+@if (_loading)
+{
+    <div class="loading">Computing consensus across all baselines…</div>
+}
+else if (_result is not null)
+{
+    <div class="stat-grid">
+        <div class="stat-card accent-amber"><span class="stat-value">@_result.ScopeCount</span><span class="stat-label">Scope Count</span></div>
+        <div class="stat-card accent-green"><span class="stat-value">@_result.AddedNodes</span><span class="stat-label">Added Nodes</span></div>
+        <div class="stat-card accent-red"><span class="stat-value">@_result.RemovedNodes</span><span class="stat-label">Removed Nodes</span></div>
+        <div class="stat-card accent-teal"><span class="stat-value">@_result.AddedRels</span><span class="stat-label">Added Rels</span></div>
+        <div class="stat-card accent-orange"><span class="stat-value">@_result.RemovedRels</span><span class="stat-label">Removed Rels</span></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2 class="card-title">Consensus Summary</h2></div>
+        <p style="color:var(--text-secondary);font-size:0.85rem;">@_result.ConsensusLabel</p>
+    </div>
+
+    @if (_result.Families.Count > 0)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Selection Families</h2>
+                <span class="badge badge-violet">@_result.Families.Count families</span>
+            </div>
+            <p class="card-sub">Groups of baseline pairs that share the same change-selection shape</p>
+            <table class="data-table" style="margin-top:0.75rem;">
+                <thead><tr><th>Signature</th><th>Scope Count</th><th>Scope Keys</th><th>Node Tables</th><th>Rel Types</th></tr></thead>
+                <tbody>
+                @foreach (var f in _result.Families)
+                {
+                    <tr>
+                        <td class="mono" style="font-size:0.72rem;max-width:200px;word-break:break-all;">@f.Signature</td>
+                        <td>@f.ScopeCount</td>
+                        <td style="font-size:0.78rem;">@string.Join(", ", f.ScopeKeys)</td>
+                        <td>@foreach (var nt in f.SelectedNodeTables) { <span class="badge badge-blue" style="margin-right:0.3rem;">@nt</span> }</td>
+                        <td>@foreach (var rt in f.SelectedRelTypes) { <span class="badge badge-teal" style="margin-right:0.3rem;">@rt</span> }</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+else
+{
+    <div class="card empty-state"><span class="icon">🔗</span><p>Consensus report requires at least 2 baselines.</p></div>
+}
+
+@code {
+    private ConsensusResult? _result;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Yield();
+        _result = Graph.GetConsensusReport();
+        _loading = false;
+    }
+}

@@ -1,0 +1,85 @@
+@page "/platforms"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">🚢 Platform Exposure</h1>
+    <p class="page-sub">Select a standard edition to trace affected platforms via Edition → Profile → Component → Subsystem → Platform</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Standard Edition</h2>
+        <select class="form-select" @onchange="OnEditionSelected">
+            <option value="">— select an edition —</option>
+            @foreach (var e in _editions)
+            {
+                <option value="@e.Key">@e.Value</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="loading">Traversing platform exposure…</div>
+}
+else if (_rows.Count > 0)
+{
+    <div class="stat-grid">
+        <div class="stat-card accent-blue"><span class="stat-value">@_rows.Select(r => r.PlatformId).Distinct().Count()</span><span class="stat-label">Platforms</span></div>
+        <div class="stat-card accent-violet"><span class="stat-value">@_rows.Select(r => r.SubsystemName).Distinct().Count()</span><span class="stat-label">Subsystems</span></div>
+        <div class="stat-card accent-cyan"><span class="stat-value">@_rows.Select(r => r.ComponentName).Distinct().Count()</span><span class="stat-label">Components</span></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2 class="card-title">Affected Platforms</h2></div>
+        <table class="data-table">
+            <thead><tr><th>Platform</th><th>Type</th><th>Subsystem</th><th>Component</th><th>Profile</th></tr></thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr>
+                    <td class="mono">@r.PlatformId</td>
+                    <td><span class="badge badge-@PlatformBadge(r.PlatformType)">@r.PlatformType</span></td>
+                    <td><span class="impact-node lane-b" style="font-size:0.72rem;">@r.SubsystemName</span></td>
+                    <td style="font-size:0.78rem;">@r.ComponentName</td>
+                    <td style="font-size:0.78rem;">@r.ProfileName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else if (!string.IsNullOrEmpty(_selectedEdition) && !_loading)
+{
+    <div class="card empty-state"><span class="icon">🚢</span><p>No platforms affected by this edition.</p></div>
+}
+
+@code {
+    private Dictionary<string, string> _editions = new();
+    private string _selectedEdition = "";
+    private List<PlatformExposureRow> _rows = [];
+    private bool _loading;
+
+    protected override void OnInitialized()
+    {
+        var resp = Graph.Execute("MATCH (se:StandardEdition) RETURN se.id, se.edition_label ORDER BY se.effective_date");
+        if (resp.IsSuccess)
+            foreach (var r in resp.Rows)
+                _editions[r.GetValueOrDefault("se.id")?.ToString() ?? ""] = r.GetValueOrDefault("se.edition_label")?.ToString() ?? "";
+    }
+
+    private async Task OnEditionSelected(ChangeEventArgs e)
+    {
+        _selectedEdition = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(_selectedEdition)) { _rows = []; return; }
+        _loading = true; StateHasChanged(); await Task.Yield();
+        _rows = Graph.GetAffectedPlatforms(_selectedEdition);
+        _loading = false;
+    }
+
+    private static string PlatformBadge(string t) => t switch
+    {
+        "SURFACE" => "blue", "SUBSURFACE" => "teal", "AIR" => "cyan", "LAND" => "amber", _ => "violet"
+    };
+}

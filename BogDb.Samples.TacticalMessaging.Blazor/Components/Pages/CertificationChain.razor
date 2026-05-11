@@ -1,0 +1,84 @@
+@page "/certification"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">📋 Certification Chain</h1>
+    <p class="page-sub">Select a translator component to see its full certification lineage: Requirements → Tests → Evidence → Certification Packages</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Component</h2>
+        <select class="form-select" @onchange="OnComponentSelected">
+            <option value="">— select a component —</option>
+            @foreach (var c in _components)
+            {
+                <option value="@c.Key">@c.Value</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="loading">Traversing certification chain…</div>
+}
+else if (_rows.Count > 0)
+{
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">@_rows[0].ComponentName — @_rows.Count chain paths</h2>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr><th>Requirement</th><th>Statement</th><th>Test</th><th>Status</th><th>Verdict</th><th>Cert Package</th><th>Pkg Status</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr>
+                    <td class="mono">@r.RequirementId</td>
+                    <td style="font-size:0.78rem;max-width:250px;">@r.ReqStatement</td>
+                    <td style="font-size:0.78rem;">@r.TestName</td>
+                    <td><span class="badge @StatusBadge(r.TestStatus)">@r.TestStatus</span></td>
+                    <td><span class="badge @VerdictBadge(r.Verdict)">@r.Verdict</span></td>
+                    <td style="font-size:0.78rem;">@r.CertPackage</td>
+                    <td><span class="badge @CertBadge(r.CertStatus)">@r.CertStatus</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else if (!string.IsNullOrEmpty(_selected) && !_loading)
+{
+    <div class="card empty-state"><span class="icon">📋</span><p>No certification chain found for this component.</p></div>
+}
+
+@code {
+    private Dictionary<string, string> _components = new();
+    private string _selected = "";
+    private List<CertChainRow> _rows = [];
+    private bool _loading;
+
+    protected override void OnInitialized()
+    {
+        var resp = Graph.Execute("MATCH (tc:TranslatorComponent) RETURN tc.id, tc.name ORDER BY tc.name");
+        if (resp.IsSuccess)
+            foreach (var r in resp.Rows)
+                _components[r.GetValueOrDefault("tc.id")?.ToString() ?? ""] = r.GetValueOrDefault("tc.name")?.ToString() ?? "";
+    }
+
+    private async Task OnComponentSelected(ChangeEventArgs e)
+    {
+        _selected = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(_selected)) { _rows = []; return; }
+        _loading = true; StateHasChanged(); await Task.Yield();
+        _rows = Graph.GetCertificationChain(_selected);
+        _loading = false;
+    }
+
+    private static string StatusBadge(string s) => s switch { "PASSING" => "badge-green", "FAILING" => "badge-red", "BLOCKED" => "badge-amber", _ => "badge-cyan" };
+    private static string VerdictBadge(string v) => v switch { "PASS" => "badge-green", "FAIL" => "badge-red", _ => "badge-amber" };
+    private static string CertBadge(string s) => s switch { "APPROVED" => "badge-green", "SUBMITTED" => "badge-teal", _ => "badge-amber" };
+}

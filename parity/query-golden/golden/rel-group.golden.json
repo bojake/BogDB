@@ -1,0 +1,14 @@
+﻿{
+  "corpus": "corpus-rel-group.cypher",
+  "blessedAt": "2026-04-01T19:10:25.2382640Z",
+  "queries": [
+    {
+      "name": "create_rel_group",
+      "cypher": "CREATE REL TABLE GROUP MyGroup ( FROM A TO B )",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    }
+  ]
+}

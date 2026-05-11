@@ -1,0 +1,74 @@
+﻿{
+  "corpus": "corpus-scalar-macro.cypher",
+  "blessedAt": "2026-03-28T00:30:13.9968620Z",
+  "queries": [
+    {
+      "name": "create_macro_add10",
+      "cypher": "CREATE MACRO Add10(x) AS x \u002B 10",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "call_macro_add10",
+      "cypher": "RETURN Add10(5)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "Add10(5)"
+      ],
+      "rows": [
+        [
+          "15"
+        ]
+      ]
+    },
+    {
+      "name": "create_macro_default_param",
+      "cypher": "CREATE MACRO AddDefault(x, y := 40) AS x \u002B y",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "call_macro_default_param",
+      "cypher": "RETURN AddDefault(2), AddDefault(2, 3)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "AddDefault(2)",
+        "AddDefault(2, 3)"
+      ],
+      "rows": [
+        [
+          "42",
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "create_macro_no_params",
+      "cypher": "CREATE MACRO ReturnConst() AS 42",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "call_macro_no_params",
+      "cypher": "RETURN ReturnConst()",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ReturnConst()"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    }
+  ]
+}

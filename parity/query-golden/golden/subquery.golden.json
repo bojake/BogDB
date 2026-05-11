@@ -1,0 +1,136 @@
+﻿{
+  "corpus": "corpus-subquery.cypher",
+  "blessedAt": "2026-04-04T23:49:24.6823660Z",
+  "queries": [
+    {
+      "name": "exists_subquery_in_where",
+      "cypher": "MATCH (a:Person) WHERE EXISTS { MATCH (a)-[:KNOWS]-\u003E(b:Person) } RETURN COUNT(*)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "COUNT(*)"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "count_subquery_in_return",
+      "cypher": "MATCH (a:Person) RETURN a.id, COUNT { MATCH (a)-[:KNOWS]-\u003E(b:Person) } AS degree ORDER BY a.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "degree"
+      ],
+      "rows": [
+        [
+          "a",
+          "1"
+        ],
+        [
+          "b",
+          "0"
+        ],
+        [
+          "c",
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "not_exists_subquery",
+      "cypher": "MATCH (a:Person) WHERE NOT EXISTS { MATCH (a)-[:KNOWS]-\u003E(b:Person) } RETURN COUNT(*)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "COUNT(*)"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "exists_with_filter",
+      "cypher": "MATCH (a:Person) WHERE EXISTS { MATCH (a)-[:KNOWS]-\u003E(b:Person) WHERE b.fName = \u0027Bob\u0027 } RETURN a.fName",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.fName"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ]
+      ]
+    },
+    {
+      "name": "correlated_multi_hop_exists",
+      "cypher": "MATCH (a:Person) WHERE EXISTS { MATCH (a)-[:KNOWS]-\u003E(:Person)-[:KNOWS]-\u003E(c:Person) } RETURN a.fName ORDER BY a.fName",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.fName"
+      ],
+      "rows": []
+    },
+    {
+      "name": "nested_filter_on_outer_binding",
+      "cypher": "MATCH (a:Person), (b:Person) WHERE a.id \u003C\u003E b.id AND EXISTS { MATCH (a)-[:KNOWS]-\u003E(c:Person) WHERE c.id = b.id } RETURN a.fName, b.fName ORDER BY a.fName, b.fName",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.fName",
+        "b.fName"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "count_with_grouped_aggregate",
+      "cypher": "MATCH (a:Person) RETURN a.fName, COUNT { MATCH (a)-[:KNOWS]-\u003E(b:Person) WHERE b.fName STARTS WITH \u0027B\u0027 } AS b_friends ORDER BY a.fName",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.fName",
+        "b_friends"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "1"
+        ],
+        [
+          "Bob",
+          "0"
+        ],
+        [
+          "Cara",
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "multiple_subqueries",
+      "cypher": "MATCH (a:Person) WHERE EXISTS { MATCH (a)-[:KNOWS]-\u003E(b:Person) } AND COUNT { MATCH (a)-[:KNOWS]-\u003E(c:Person) } \u003E 0 RETURN a.fName ORDER BY a.fName",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.fName"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ]
+      ]
+    }
+  ]
+}

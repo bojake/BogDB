@@ -1,0 +1,28 @@
+﻿{
+  "corpus": "corpus-user-defined-types.cypher",
+  "blessedAt": "2026-04-04T21:10:38.0822570Z",
+  "queries": [
+    {
+      "name": "create_type",
+      "cypher": "CREATE TYPE MyType AS STRUCT(a INT64, b STRING)",
+      "isSuccess": false,
+      "errorMessage": "CREATE TYPE is recognized by the parser but not yet implemented in the execution engine.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "cast_to_custom_type",
+      "cypher": "RETURN cast({a: 1, b: \u0027hi\u0027}, \u0027MyType\u0027)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cast({a: 1, b: \u0027hi\u0027}, \u0027MyType\u0027)"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    }
+  ]
+}

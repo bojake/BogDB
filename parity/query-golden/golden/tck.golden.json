@@ -1,0 +1,119 @@
+﻿{
+  "corpus": "corpus-tck.cypher",
+  "blessedAt": "2026-04-02T02:53:11.4412270Z",
+  "queries": [
+    {
+      "name": "tck_match_all_nodes",
+      "cypher": "MATCH (n:Node) RETURN n.n ORDER BY n.n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n.n"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "2"
+        ],
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "tck_path_bindings",
+      "cypher": "MATCH p=(n1:Node)-[r:REL*1..2]-\u003E(n2:Node) RETURN length(p) AS len ORDER BY len, n1.n, n2.n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "1"
+        ],
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "tck_optional_match_fallback",
+      "cypher": "MATCH (n1:Node {n: 1}) OPTIONAL MATCH (n1)-[:REL]-\u003E(n2:Node {n: 999}) RETURN n1.n, n2.n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n1.n",
+        "n2.n"
+      ],
+      "rows": [
+        [
+          "1",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "tck_multiple_with",
+      "cypher": "MATCH (n:Node) WITH n.n AS num, n.name AS str WHERE num \u003E 1 WITH num * 2 AS doubleNum, str RETURN doubleNum, str ORDER BY doubleNum",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "doubleNum",
+        "str"
+      ],
+      "rows": [
+        [
+          "4",
+          "b"
+        ],
+        [
+          "6",
+          "c"
+        ]
+      ]
+    },
+    {
+      "name": "tck_unwind_chain",
+      "cypher": "UNWIND [1, 2, 3] AS i UNWIND [i, i\u002B1] AS j RETURN i, j ORDER BY i, j",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i",
+        "j"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E",
+          "1"
+        ],
+        [
+          "\u003Cnull\u003E",
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "tck_boolean_bridge",
+      "cypher": "MATCH (n:Node) WHERE (n.n \u003E 1 AND n.name = \u0027b\u0027) OR n.name = \u0027c\u0027 RETURN n.n ORDER BY n.n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n.n"
+      ],
+      "rows": [
+        [
+          "2"
+        ],
+        [
+          "3"
+        ]
+      ]
+    }
+  ]
+}

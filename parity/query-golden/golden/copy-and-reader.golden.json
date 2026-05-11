@@ -1,0 +1,454 @@
+﻿{
+  "corpus": "corpus-copy-and-reader.cypher",
+  "blessedAt": "2026-04-02T02:56:05.1277370Z",
+  "queries": [
+    {
+      "name": "node_count_after_copy",
+      "cypher": "MATCH (p:Person) RETURN count(p) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "node_id_readback",
+      "cypher": "MATCH (p:Person) RETURN p.id ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "2"
+        ],
+        [
+          "3"
+        ],
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "node_name_readback",
+      "cypher": "MATCH (p:Person) RETURN p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ],
+        [
+          "Bob"
+        ],
+        [
+          "Charlie"
+        ],
+        [
+          "Diana"
+        ]
+      ]
+    },
+    {
+      "name": "node_age_readback",
+      "cypher": "MATCH (p:Person) RETURN p.age ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.age"
+      ],
+      "rows": [
+        [
+          "25"
+        ],
+        [
+          "28"
+        ],
+        [
+          "30"
+        ],
+        [
+          "35"
+        ]
+      ]
+    },
+    {
+      "name": "node_full_row_readback",
+      "cypher": "MATCH (p:Person) WHERE p.id = 1 RETURN p.id, p.name, p.age",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name",
+        "p.age"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice",
+          "30"
+        ]
+      ]
+    },
+    {
+      "name": "node_filter_after_copy",
+      "cypher": "MATCH (p:Person) WHERE p.age \u003E 28 RETURN p.name ORDER BY p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ],
+        [
+          "Charlie"
+        ]
+      ]
+    },
+    {
+      "name": "rel_copy_and_count",
+      "cypher": "COPY Knows FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/knows.csv\u0027; MATCH ()-[k:Knows]-\u003E() RETURN count(k) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "rel_traversal_readback",
+      "cypher": "MATCH (a:Person)-[k:Knows]-\u003E(b:Person) RETURN a.id, b.id ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "2"
+        ],
+        [
+          "1",
+          "4"
+        ],
+        [
+          "2",
+          "3"
+        ],
+        [
+          "3",
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "rel_property_readback",
+      "cypher": "MATCH (a:Person)-[k:Knows]-\u003E(b:Person) RETURN a.id, b.id, k.since ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "k.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "2",
+          "2020"
+        ],
+        [
+          "1",
+          "4",
+          "2019"
+        ],
+        [
+          "2",
+          "3",
+          "2021"
+        ],
+        [
+          "3",
+          "4",
+          "2022"
+        ]
+      ]
+    },
+    {
+      "name": "rel_filter_by_property",
+      "cypher": "MATCH (a:Person)-[k:Knows]-\u003E(b:Person) WHERE k.since \u003E= 2021 RETURN a.id, b.id ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id"
+      ],
+      "rows": [
+        [
+          "2",
+          "3"
+        ],
+        [
+          "3",
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "rel_degree_via_copy",
+      "cypher": "MATCH (p:Person) OPTIONAL MATCH (p)-[:Knows]-\u003E(other:Person) RETURN p.id, count(other) AS out_degree ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "out_degree"
+      ],
+      "rows": [
+        [
+          "1",
+          "2"
+        ],
+        [
+          "2",
+          "1"
+        ],
+        [
+          "3",
+          "1"
+        ],
+        [
+          "4",
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "copy_to_nodes_creates_no_result_rows",
+      "cypher": "COPY (MATCH (p:Person) RETURN p.id, p.name, p.age ORDER BY p.id) TO \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_persons.csv\u0027",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "copy_to_filtered_creates_no_result_rows",
+      "cypher": "COPY (MATCH (p:Person) WHERE p.age \u003E 28 RETURN p.id, p.name ORDER BY p.id) TO \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_persons_filtered.csv\u0027",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "copy_to_rel_export_creates_no_result_rows",
+      "cypher": "COPY (MATCH (a:Person)-[k:Knows]-\u003E(b:Person) RETURN a.id, b.id, k.since ORDER BY a.id, b.id) TO \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_knows.csv\u0027",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "copy_to_aggregation_export",
+      "cypher": "COPY (MATCH (p:Person) OPTIONAL MATCH (p)-[:Knows]-\u003E(other:Person) RETURN p.id, count(other) AS out_degree ORDER BY p.id) TO \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_degrees.csv\u0027",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "readback_after_copy_to_unchanged",
+      "cypher": "MATCH (p:Person) RETURN count(p) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_declared_input_row_count",
+      "cypher": "LOAD WITH HEADERS (id INT64, name STRING, age INT64) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/persons.csv\u0027 RETURN count(*) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_declared_input_ordered_ids",
+      "cypher": "LOAD WITH HEADERS (id INT64, name STRING, age INT64) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/persons.csv\u0027 RETURN id ORDER BY id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "2"
+        ],
+        [
+          "3"
+        ],
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_declared_input_names",
+      "cypher": "LOAD WITH HEADERS (id INT64, name STRING, age INT64) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/persons.csv\u0027 RETURN name ORDER BY id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "name"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ],
+        [
+          "Bob"
+        ],
+        [
+          "Charlie"
+        ],
+        [
+          "Diana"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_with_where_filter",
+      "cypher": "LOAD WITH HEADERS (id INT64, name STRING, age INT64) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/persons.csv\u0027 WHERE age \u003E 28 RETURN id, name ORDER BY id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ],
+        [
+          "3",
+          "Charlie"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_round_trip_row_count",
+      "cypher": "LOAD FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_persons.csv\u0027 RETURN count(*) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_filtered_round_trip_row_count",
+      "cypher": "LOAD FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_persons_filtered.csv\u0027 RETURN count(*) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "copy_to_complex_projection",
+      "cypher": "COPY (MATCH (p:Person) RETURN p.name AS name, p.age * 2 AS double_age, substring(p.name, 1, 3) AS tag ORDER BY p.id) TO \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_complex.csv\u0027",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "load_from_complex_projection",
+      "cypher": "LOAD FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/out_complex.csv\u0027 RETURN count(*) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_skip_limit",
+      "cypher": "LOAD WITH HEADERS (id INT64, name STRING, age INT64) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/persons.csv\u0027 RETURN id, name ORDER BY id SKIP 1 LIMIT 2",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "2",
+          "Bob"
+        ],
+        [
+          "3",
+          "Charlie"
+        ]
+      ]
+    },
+    {
+      "name": "load_from_inline_structural_cast",
+      "cypher": "LOAD WITH HEADERS (id STRING, name STRING, age STRING) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_1f19857dfddb449087c5a881ae706ab8/persons.csv\u0027 WHERE cast(id, \u0027INT64\u0027) \u003E 2 RETURN cast(age, \u0027INT64\u0027) * 2 AS doubleAge ORDER BY id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "doubleAge"
+      ],
+      "rows": [
+        [
+          "56"
+        ],
+        [
+          "70"
+        ]
+      ]
+    }
+  ]
+}

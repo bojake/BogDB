@@ -1,0 +1,170 @@
+﻿{
+  "corpus": "corpus-string-functions.cypher",
+  "blessedAt": "2026-03-22T13:44:23.8408980Z",
+  "queries": [
+    {
+      "name": "trim_variants",
+      "cypher": "RETURN trim(\u0027  hello  \u0027) AS trimmed, ltrim(\u0027  hello  \u0027) AS ltrimmed, rtrim(\u0027  hello  \u0027) AS rtrimmed",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "trimmed",
+        "ltrimmed",
+        "rtrimmed"
+      ],
+      "rows": [
+        [
+          "hello",
+          "hello  ",
+          "  hello"
+        ]
+      ]
+    },
+    {
+      "name": "pad_functions",
+      "cypher": "RETURN lpad(\u0027abc\u0027, 6, \u00270\u0027) AS left_padded, rpad(\u0027abc\u0027, 6, \u0027!\u0027) AS right_padded",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "left_padded",
+        "right_padded"
+      ],
+      "rows": [
+        [
+          "000abc",
+          "abc!!!"
+        ]
+      ]
+    },
+    {
+      "name": "repeat_and_reverse",
+      "cypher": "RETURN repeat(\u0027ab\u0027, 3) AS rep, reverse(\u0027hello\u0027) AS rev",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "rep",
+        "rev"
+      ],
+      "rows": [
+        [
+          "ababab",
+          "olleh"
+        ]
+      ]
+    },
+    {
+      "name": "substring_variants",
+      "cypher": "RETURN substring(\u0027abcdefgh\u0027, 3, 4) AS mid, left(\u0027abcdefgh\u0027, 3) AS lft, right(\u0027abcdefgh\u0027, 3) AS rgt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "mid",
+        "lft",
+        "rgt"
+      ],
+      "rows": [
+        [
+          "defg",
+          "abc",
+          "fgh"
+        ]
+      ]
+    },
+    {
+      "name": "replace_and_concat",
+      "cypher": "RETURN replace(\u0027hello world\u0027, \u0027world\u0027, \u0027bogdb\u0027) AS replaced, concat(\u0027foo\u0027, \u0027bar\u0027, \u0027baz\u0027) AS joined",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "replaced",
+        "joined"
+      ],
+      "rows": [
+        [
+          "hello bogdb",
+          "foobar"
+        ]
+      ]
+    },
+    {
+      "name": "upper_lower_size",
+      "cypher": "RETURN upper(\u0027Hello World\u0027) AS up, lower(\u0027Hello World\u0027) AS lo, size(\u0027Hello World\u0027) AS sz",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "up",
+        "lo",
+        "sz"
+      ],
+      "rows": [
+        [
+          "HELLO WORLD",
+          "hello world",
+          "11"
+        ]
+      ]
+    },
+    {
+      "name": "starts_ends_contains",
+      "cypher": "RETURN starts_with(\u0027foobar\u0027, \u0027foo\u0027) AS sw, ends_with(\u0027foobar\u0027, \u0027bar\u0027) AS ew, contains(\u0027foobar\u0027, \u0027oba\u0027) AS ct",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sw",
+        "ew",
+        "ct"
+      ],
+      "rows": [
+        [
+          "True",
+          "True",
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "split_and_index",
+      "cypher": "RETURN list_element(string_split(\u0027a,b,c,d\u0027, \u0027,\u0027), 2) AS second_token, array_length(string_split(\u0027a,b,c,d\u0027, \u0027,\u0027)) AS token_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "second_token",
+        "token_count"
+      ],
+      "rows": [
+        [
+          "b",
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "regex_extract",
+      "cypher": "RETURN regexp_extract(\u0027abc_123_def\u0027, \u0027[0-9]\u002B\u0027) AS digits",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "digits"
+      ],
+      "rows": [
+        [
+          "123"
+        ]
+      ]
+    },
+    {
+      "name": "position_and_instr",
+      "cypher": "RETURN strpos(\u0027hello world\u0027, \u0027world\u0027) AS pos",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "pos"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    }
+  ]
+}

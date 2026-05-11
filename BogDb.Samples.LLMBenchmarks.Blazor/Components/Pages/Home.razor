@@ -1,0 +1,178 @@
+@page "/"
+@rendermode InteractiveServer
+@inject BenchmarkGraphService Graph
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Dashboard · BogDB LLM Explorer</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">LLM performance data visualized through BogDB's property graph engine</p>
+</div>
+
+<div class="page-body">
+
+    @if (_stats is null)
+    {
+        <div class="loading-overlay"><span class="spinner"></span> Loading graph data…</div>
+    }
+    else
+    {
+        <!-- Hero stat cards -->
+        <div class="stat-grid">
+            <div class="stat-card purple">
+                <div class="stat-icon">🤖</div>
+                <div class="stat-value">@_stats.Models</div>
+                <div class="stat-label">Models</div>
+            </div>
+            <div class="stat-card cyan">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">@_stats.Benchmarks</div>
+                <div class="stat-label">Benchmarks</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">@_stats.Scores</div>
+                <div class="stat-label">Scores</div>
+            </div>
+            <div class="stat-card yellow">
+                <div class="stat-icon">🏢</div>
+                <div class="stat-value">@_stats.Organisations</div>
+                <div class="stat-label">Organisations</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Avg Score by Organisation</h3>
+                <p>Mean benchmark score across all models per creator</p>
+                <div class="chart-container">
+                    <canvas id="chart-org"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Value-For-Money Index</h3>
+                <p>avg_score ÷ cost_per_1M_tokens — higher is better</p>
+                <div class="chart-container">
+                    <canvas id="chart-vfm"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Arena ELO Rankings</h3>
+                <p>Chatbot Arena ELO scores from community preference votes</p>
+                <div class="chart-container">
+                    <canvas id="chart-elo"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Avg Score by Category</h3>
+                <p>Model capability breakdown across benchmark categories</p>
+                <div class="chart-container">
+                    <canvas id="chart-cat"></canvas>
+                </div>
+            </div>
+            <div class="chart-card chart-full">
+                <h3>Top 6 Models — Multi-Benchmark Radar</h3>
+                <p>Score profile across all 7 benchmarks for the top performers</p>
+                <div class="chart-container" style="height:340px">
+                    <canvas id="chart-radar"></canvas>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DashboardStats? _stats;
+    private IJSObjectReference? _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _stats = Graph.GetStats();
+        StateHasChanged();
+
+        await Task.Delay(80);
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "./charts.js");
+        await RenderCharts();
+    }
+
+    private async Task RenderCharts()
+    {
+        if (_module is null) return;
+
+        var org = Graph.GetOrgAvgScores();
+        await _module.InvokeVoidAsync("createChart", "chart-org", "bar", org.Labels,
+            new[] { new { label = "Avg Score", data = org.Values,
+                backgroundColor = Gradient(org.Values.Count, 0x7c,0x3a,0xed, 0x06,0xb6,0xd4),
+                borderRadius = 6, borderSkipped = false } },
+            new { indexAxis = "y", plugins = new { legend = new { display = false } } });
+
+        var vfm = Graph.GetVfmIndex();
+        await _module.InvokeVoidAsync("createChart", "chart-vfm", "bar", vfm.Labels,
+            new[] { new { label = "Perf/$", data = vfm.Values,
+                backgroundColor = Gradient(vfm.Values.Count, 0x06,0xb6,0xd4, 0x10,0xb9,0x81),
+                borderRadius = 6, borderSkipped = false } },
+            new { indexAxis = "y", plugins = new { legend = new { display = false } } });
+
+        var elo = Graph.GetArenaElo();
+        await _module.InvokeVoidAsync("createChart", "chart-elo", "bar", elo.Labels,
+            new[] { new { label = "ELO", data = elo.Values,
+                backgroundColor = Gradient(elo.Values.Count, 0xf5,0x9e,0x0b, 0xef,0x44,0x44),
+                borderRadius = 6 } },
+            new { plugins = new { legend = new { display = false } },
+                  scales = new { y = new { min = 1050 } } });
+
+        var cat = Graph.GetCategoryAvgs();
+        await _module.InvokeVoidAsync("createChart", "chart-cat", "doughnut", cat.Labels,
+            new[] { new { label = "Avg Score", data = cat.Values,
+                backgroundColor = new[] { "#7c3aed","#06b6d4","#10b981","#f59e0b" },
+                borderWidth = 0, hoverOffset = 8 } },
+            new { cutout = "62%", plugins = new { legend = new { position = "right" } } });
+
+        var radar = Graph.GetTopModelsRadar(6);
+        var colors = new[] { "#7c3aed","#06b6d4","#10b981","#f59e0b","#ef4444","#a855f7" };
+        var ds = radar.Datasets.Select((d, i) => (object)new {
+            label = d.Label, data = d.Data,
+            borderColor = colors[i % colors.Length],
+            backgroundColor = colors[i % colors.Length] + "20",
+            pointBackgroundColor = colors[i % colors.Length],
+            borderWidth = 2, pointRadius = 3,
+        }).ToArray();
+
+        await _module.InvokeVoidAsync("createChart", "chart-radar", "radar", radar.Labels, ds,
+            new { scales = new { r = new {
+                min = 60,
+                ticks = new { color = "#94a3b8", backdropColor = "transparent" },
+                grid  = new { color = "rgba(255,255,255,0.07)" },
+                pointLabels = new { color = "#94a3b8", font = new { size = 11 } }
+            }}});
+    }
+
+    private static string[] Gradient(int n, int r1, int g1, int b1, int r2, int g2, int b2)
+    {
+        var cols = new string[n];
+        for (int i = 0; i < n; i++)
+        {
+            double t = n <= 1 ? 0.5 : (double)i / (n - 1);
+            int r = (int)(r1 + (r2 - r1) * t);
+            int g = (int)(g1 + (g2 - g1) * t);
+            int b = (int)(b1 + (b2 - b1) * t);
+            cols[i] = $"rgba({r},{g},{b},0.85)";
+        }
+        return cols;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            foreach (var id in new[] { "chart-org","chart-vfm","chart-elo","chart-cat","chart-radar" })
+                await _module.InvokeVoidAsync("destroyChart", id);
+            await _module.DisposeAsync();
+        }
+    }
+}

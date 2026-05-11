@@ -1,0 +1,244 @@
+﻿{
+  "corpus": "corpus-nested-types-depth.cypher",
+  "blessedAt": "2026-04-04T02:18:37.1504570Z",
+  "queries": [
+    {
+      "name": "list_of_struct_unwind_sort",
+      "cypher": "UNWIND [ struct_pack(\u0027name\u0027, \u0027Charlie\u0027, \u0027score\u0027, 70), struct_pack(\u0027name\u0027, \u0027Alice\u0027,   \u0027score\u0027, 95), struct_pack(\u0027name\u0027, \u0027Bob\u0027,     \u0027score\u0027, 82) ] AS s RETURN struct_extract(s, \u0027name\u0027) AS name, struct_extract(s, \u0027score\u0027) AS score ORDER BY score DESC",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "name",
+        "score"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "95"
+        ],
+        [
+          "Bob",
+          "82"
+        ],
+        [
+          "Charlie",
+          "70"
+        ]
+      ]
+    },
+    {
+      "name": "list_of_struct_count",
+      "cypher": "RETURN list_len([ struct_pack(\u0027x\u0027, 1), struct_pack(\u0027x\u0027, 2), struct_pack(\u0027x\u0027, 3) ]) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "list_of_struct_first_element",
+      "cypher": "RETURN struct_extract( list_element([struct_pack(\u0027v\u0027, 10), struct_pack(\u0027v\u0027, 20)], 0), \u0027v\u0027 ) AS first_v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "first_v"
+      ],
+      "rows": [
+        [
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "nested_struct_two_deep",
+      "cypher": "WITH struct_pack(\u0027inner\u0027, struct_pack(\u0027val\u0027, 42)) AS outer RETURN struct_extract(struct_extract(outer, \u0027inner\u0027), \u0027val\u0027) AS val",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "val"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "nested_struct_mixed_types",
+      "cypher": "WITH struct_pack(\u0027meta\u0027, struct_pack(\u0027count\u0027, 3, \u0027label\u0027, \u0027foo\u0027), \u0027flag\u0027, TRUE) AS s RETURN struct_extract(struct_extract(s, \u0027meta\u0027), \u0027label\u0027) AS label, struct_extract(s, \u0027flag\u0027) AS flag",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "label",
+        "flag"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E",
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "map_of_list_access",
+      "cypher": "WITH map([\u0027nums\u0027, \u0027letters\u0027], [[1, 2, 3], [\u0027a\u0027, \u0027b\u0027]]) AS m RETURN list_element(list_element(map_extract(m, \u0027nums\u0027), 0), 2) AS third_num",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "third_num"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "map_of_list_length",
+      "cypher": "WITH map([\u0027nums\u0027, \u0027letters\u0027], [[1, 2, 3], [\u0027a\u0027, \u0027b\u0027]]) AS m RETURN list_len(list_element(map_extract(m, \u0027nums\u0027), 0))   AS nums_len, list_len(list_element(map_extract(m, \u0027letters\u0027), 0)) AS letters_len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "nums_len",
+        "letters_len"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E",
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "map_keys_sorted",
+      "cypher": "UNWIND map_keys(map([\u0027c\u0027, \u0027a\u0027, \u0027b\u0027], [3, 1, 2])) AS k RETURN k ORDER BY k",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "k"
+      ],
+      "rows": [
+        [
+          "a"
+        ],
+        [
+          "b"
+        ],
+        [
+          "c"
+        ]
+      ]
+    },
+    {
+      "name": "map_values_sum",
+      "cypher": "RETURN list_sum(map_values(map([\u0027x\u0027, \u0027y\u0027, \u0027z\u0027], [10, 20, 30]))) AS total",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "total"
+      ],
+      "rows": [
+        [
+          "60"
+        ]
+      ]
+    },
+    {
+      "name": "map_size",
+      "cypher": "RETURN map_len(map([\u0027a\u0027, \u0027b\u0027, \u0027c\u0027], [1, 2, 3])) AS sz",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sz"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "list_with_null_element",
+      "cypher": "RETURN list_element([1, NULL, 3], 1) IS NULL AS slot_is_null",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "slot_is_null"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "struct_with_null_field",
+      "cypher": "WITH struct_pack(\u0027a\u0027, 1, \u0027b\u0027, NULL) AS s RETURN struct_extract(s, \u0027b\u0027) IS NULL AS b_null, struct_extract(s, \u0027a\u0027) AS a_val",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "b_null",
+        "a_val"
+      ],
+      "rows": [
+        [
+          "True",
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "map_extract_missing_key_empty",
+      "cypher": "RETURN list_len(map_extract(map([\u0027x\u0027], [1]), \u0027y\u0027)) AS missing_len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "missing_len"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "list_transform_double_elements",
+      "cypher": "RETURN list_transform([1, 2, 3, 4], x -\u003E x * 2) AS doubled",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "doubled"
+      ],
+      "rows": [
+        [
+          "[2,4,6,8]"
+        ]
+      ]
+    },
+    {
+      "name": "list_transform_extract_struct_field",
+      "cypher": "UNWIND list_transform( [struct_pack(\u0027v\u0027, 1), struct_pack(\u0027v\u0027, 2), struct_pack(\u0027v\u0027, 3)], s -\u003E struct_extract(s, \u0027v\u0027) ) AS v RETURN v ORDER BY v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "2"
+        ],
+        [
+          "3"
+        ]
+      ]
+    }
+  ]
+}

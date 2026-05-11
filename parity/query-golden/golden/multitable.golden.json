@@ -1,0 +1,202 @@
+﻿{
+  "corpus": "corpus-multitable.cypher",
+  "blessedAt": "2026-03-21T23:21:20.1474976Z",
+  "queries": [
+    {
+      "name": "person_scan",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name, p.level ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name",
+        "p.level"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice",
+          "3"
+        ],
+        [
+          "2",
+          "Bob",
+          "2"
+        ],
+        [
+          "3",
+          "Carol",
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "company_scan",
+      "cypher": "MATCH (c:Company) RETURN c.id, c.name, c.revenue ORDER BY c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "c.name",
+        "c.revenue"
+      ],
+      "rows": [
+        [
+          "10",
+          "Acme",
+          "1000"
+        ],
+        [
+          "20",
+          "Beta",
+          "2000"
+        ]
+      ]
+    },
+    {
+      "name": "city_scan",
+      "cypher": "MATCH (city:City) RETURN city.id, city.name, city.region ORDER BY city.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "city.id",
+        "city.name",
+        "city.region"
+      ],
+      "rows": [
+        [
+          "100",
+          "Seattle",
+          "west"
+        ],
+        [
+          "200",
+          "Austin",
+          "south"
+        ]
+      ]
+    },
+    {
+      "name": "works_at_edges",
+      "cypher": "MATCH (p:Person)-[r:WORKS_AT]-\u003E(c:Company) RETURN p.id, c.id, r.since ORDER BY p.id, c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "10",
+          "2020"
+        ],
+        [
+          "2",
+          "10",
+          "2021"
+        ],
+        [
+          "3",
+          "20",
+          "2022"
+        ]
+      ]
+    },
+    {
+      "name": "located_in_edges",
+      "cypher": "MATCH (c:Company)-[r:LOCATED_IN]-\u003E(city:City) RETURN c.id, city.id, r.opened ORDER BY c.id, city.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "city.id",
+        "r.opened"
+      ],
+      "rows": [
+        [
+          "10",
+          "100",
+          "2010"
+        ],
+        [
+          "20",
+          "200",
+          "2015"
+        ]
+      ]
+    },
+    {
+      "name": "company_employee_counts",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT]-\u003E(c:Company) RETURN c.id, COUNT(*) AS cnt ORDER BY c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "10",
+          "2"
+        ],
+        [
+          "20",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "person_company_city_chain",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT]-\u003E(c:Company)-[:LOCATED_IN]-\u003E(city:City) RETURN p.id, c.id, city.id ORDER BY p.id, c.id, city.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c.id",
+        "city.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "10",
+          "100"
+        ],
+        [
+          "2",
+          "10",
+          "100"
+        ],
+        [
+          "3",
+          "20",
+          "200"
+        ]
+      ]
+    },
+    {
+      "name": "west_region_chain",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT]-\u003E(c:Company)-[:LOCATED_IN]-\u003E(city:City) WHERE city.region = \u0027west\u0027 RETURN p.name, c.name, city.name ORDER BY p.name, c.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "c.name",
+        "city.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Acme",
+          "Seattle"
+        ],
+        [
+          "Bob",
+          "Acme",
+          "Seattle"
+        ]
+      ]
+    }
+  ]
+}

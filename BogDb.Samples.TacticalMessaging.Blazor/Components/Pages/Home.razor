@@ -1,0 +1,97 @@
+@page "/"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">Tactical Messaging Compliance</h1>
+    <p class="page-sub">Impact-analysis engine for tactical messaging standards — BogDB graph analytics across Standards, System, and Assurance lanes</p>
+</div>
+
+<div class="lane-indicator">
+    <span class="lane-pill standards">🔵 Lane A — Standards</span>
+    <span class="lane-pill system">🟣 Lane B — System</span>
+    <span class="lane-pill assurance">🟢 Lane C — Assurance</span>
+</div>
+
+@if (_stats is null)
+{
+    <div class="loading">Loading dashboard…</div>
+}
+else
+{
+    <h3 class="section-title">Lane A — Standards</h3>
+    <div class="stat-grid">
+        <div class="stat-card accent-blue"><span class="stat-value">@_stats.StandardCount</span><span class="stat-label">Standards</span></div>
+        <div class="stat-card accent-blue"><span class="stat-value">@_stats.EditionCount</span><span class="stat-label">Editions</span></div>
+        <div class="stat-card accent-blue"><span class="stat-value">@_stats.FamilyCount</span><span class="stat-label">Families</span></div>
+        <div class="stat-card accent-cyan"><span class="stat-value">@_stats.MessageTypeCount</span><span class="stat-label">Msg Types</span></div>
+        <div class="stat-card accent-cyan"><span class="stat-value">@_stats.FieldCount</span><span class="stat-label">Fields</span></div>
+        <div class="stat-card accent-teal"><span class="stat-value">@_stats.ProfileCount</span><span class="stat-label">Profiles</span></div>
+    </div>
+
+    <h3 class="section-title">Lane B — System</h3>
+    <div class="stat-grid">
+        <div class="stat-card accent-violet"><span class="stat-value">@_stats.ComponentCount</span><span class="stat-label">Components</span></div>
+        <div class="stat-card accent-violet"><span class="stat-value">@_stats.SubsystemCount</span><span class="stat-label">Subsystems</span></div>
+        <div class="stat-card accent-violet"><span class="stat-value">@_stats.PlatformCount</span><span class="stat-label">Platforms</span></div>
+    </div>
+
+    <h3 class="section-title">Lane C — Assurance</h3>
+    <div class="stat-grid">
+        <div class="stat-card accent-green"><span class="stat-value">@_stats.RequirementCount</span><span class="stat-label">Requirements</span></div>
+        <div class="stat-card accent-green"><span class="stat-value">@_stats.TestCaseCount</span><span class="stat-label">Test Cases</span></div>
+        <div class="stat-card accent-green"><span class="stat-value">@_stats.PassingTests</span><span class="stat-label">Passing</span></div>
+        <div class="stat-card accent-red"><span class="stat-value">@_stats.FailingTests</span><span class="stat-label">Failing</span></div>
+    </div>
+
+    <h3 class="section-title">Snapshot Layer</h3>
+    <div class="stat-grid">
+        <div class="stat-card accent-amber"><span class="stat-value">@_stats.BaselineCount</span><span class="stat-label">Baselines</span></div>
+        <div class="stat-card accent-orange"><span class="stat-value">@_stats.ChangeEventCount</span><span class="stat-label">Change Events</span></div>
+    </div>
+
+    @if (_baselines.Count > 0)
+    {
+        <div class="card">
+            <div class="card-header"><h2 class="card-title">Baseline Timeline</h2></div>
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>Label</th><th>Date</th><th>Sealed</th><th>Entities</th></tr></thead>
+                <tbody>
+                @foreach (var bl in _baselines)
+                {
+                    <tr>
+                        <td class="mono">@bl.ExtId</td>
+                        <td>@bl.Label</td>
+                        <td>@bl.SnapshotDate</td>
+                        <td>@(bl.Sealed ? "✅" : "⬜")</td>
+                        <td>@bl.EntryCount</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+            <a href="/impact" class="btn btn-accent">💥 Impact Analysis</a>
+            <a href="/drift" class="btn btn-accent">📊 Baseline Drift</a>
+            <a href="/consensus" class="btn btn-accent">🔗 Consensus Report</a>
+            <a href="/gaps" class="btn btn-red">⚠️ Compliance Gaps</a>
+            <a href="/query" class="btn">🔎 Query Editor</a>
+        </div>
+    </div>
+}
+
+@code {
+    private DashboardStats? _stats;
+    private List<BaselineInfo> _baselines = [];
+
+    protected override void OnInitialized()
+    {
+        _stats = Graph.GetDashboardStats();
+        _baselines = Graph.GetBaselines();
+    }
+}

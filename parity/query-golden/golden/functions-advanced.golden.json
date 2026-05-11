@@ -1,0 +1,130 @@
+﻿{
+  "corpus": "corpus-functions-advanced.cypher",
+  "blessedAt": "2026-03-29T20:55:44.2890290Z",
+  "queries": [
+    {
+      "name": "list_sort_edges",
+      "cypher": "RETURN list_element(list_sort(list_creation(10, 2, 9)), 0) AS smallest, list_element(list_reverse_sort(list_creation(10, 2, 9)), 0) AS largest",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "smallest",
+        "largest"
+      ],
+      "rows": [
+        [
+          "2",
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "list_unique_length",
+      "cypher": "RETURN list_len(list_unique(list_creation(1, 2, 2, 3, 3, 3))) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "list_contains_and_position",
+      "cypher": "RETURN list_contains(list_creation(\u0027red\u0027, \u0027green\u0027, \u0027blue\u0027), \u0027green\u0027) AS has_green, list_position(list_creation(\u0027red\u0027, \u0027green\u0027, \u0027blue\u0027), \u0027blue\u0027) AS blue_pos",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_green",
+        "blue_pos"
+      ],
+      "rows": [
+        [
+          "True",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "list_concat_access",
+      "cypher": "RETURN list_element(list_concat(list_creation(\u0027a\u0027, \u0027b\u0027), list_creation(\u0027c\u0027, \u0027d\u0027)), 2) AS third",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "third"
+      ],
+      "rows": [
+        [
+          "b"
+        ]
+      ]
+    },
+    {
+      "name": "list_transform_upper",
+      "cypher": "RETURN list_element(list_transform(list_creation(\u0027alice\u0027, \u0027bob\u0027), \u0027upper\u0027), 1) AS second_upper",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "second_upper"
+      ],
+      "rows": [
+        [
+          "ALICE"
+        ]
+      ]
+    },
+    {
+      "name": "map_lookup_and_contains",
+      "cypher": "RETURN list_element(map_extract(map(list_creation(\u0027a\u0027, \u0027b\u0027), list_creation(10, 20)), \u0027b\u0027), 0) AS value_b, map_contains(map(list_creation(\u0027a\u0027, \u0027b\u0027), list_creation(10, 20)), \u0027a\u0027) AS has_a",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "value_b",
+        "has_a"
+      ],
+      "rows": [
+        [
+          "20",
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "struct_extract_and_key_count",
+      "cypher": "RETURN struct_extract(struct_pack(\u0027name\u0027, \u0027alice\u0027, \u0027age\u0027, 30), \u0027age\u0027) AS age, list_len(keys(struct_pack(\u0027name\u0027, \u0027alice\u0027, \u0027age\u0027, 30))) AS key_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "age",
+        "key_count"
+      ],
+      "rows": [
+        [
+          "30",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "date_and_timestamp_arithmetic",
+      "cypher": "RETURN date_add(\u0027day\u0027, date(\u00272024-01-01\u0027), 5) AS plus_days, date_diff(\u0027day\u0027, date(\u00272024-01-01\u0027), date(\u00272024-01-10\u0027)) AS diff_days, timestamp_add(\u0027hour\u0027, timestamp(\u00272024-01-01T00:00:00Z\u0027), 6) AS plus_hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "plus_days",
+        "diff_days",
+        "plus_hours"
+      ],
+      "rows": [
+        [
+          "2024-01-06T00:00:00.0000000",
+          "9",
+          "2024-01-01 06:00:00"
+        ]
+      ]
+    }
+  ]
+}

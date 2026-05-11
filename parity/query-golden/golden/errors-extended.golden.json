@@ -1,0 +1,194 @@
+﻿{
+  "corpus": "corpus-errors-extended.cypher",
+  "blessedAt": "2026-04-04T15:39:36.9661040Z",
+  "queries": [
+    {
+      "name": "unknown_function",
+      "cypher": "RETURN does_not_exist(42)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "does_not_exist(42)"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "invalid_regex",
+      "cypher": "RETURN regexp_matches(\u0027hello\u0027, \u0027[invalid[\u0027)",
+      "isSuccess": false,
+      "errorMessage": "Invalid pattern \u0027[invalid[\u0027 at offset 9. Unterminated [] set.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "divide_by_zero_int",
+      "cypher": "RETURN 10 / 0",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "10 / 0"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "modulo_by_zero",
+      "cypher": "RETURN 10 % 0",
+      "isSuccess": false,
+      "errorMessage": "Attempted to divide by zero.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "log_of_zero",
+      "cypher": "RETURN log(0.0)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "log(0.0)"
+      ],
+      "rows": [
+        [
+          "-\u221E"
+        ]
+      ]
+    },
+    {
+      "name": "log_of_negative",
+      "cypher": "RETURN log(-1.0)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "log(-1.0)"
+      ],
+      "rows": [
+        [
+          "NaN"
+        ]
+      ]
+    },
+    {
+      "name": "sqrt_of_negative",
+      "cypher": "RETURN sqrt(-4.0)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sqrt(-4.0)"
+      ],
+      "rows": [
+        [
+          "NaN"
+        ]
+      ]
+    },
+    {
+      "name": "unknown_rel_in_match",
+      "cypher": "MATCH (a:Item)-[r:SELLS]-\u003E(b:Item) RETURN r",
+      "isSuccess": false,
+      "errorMessage": "Relationship table \u0027SELLS\u0027 does not exist.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "unknown_node_label_in_create",
+      "cypher": "MATCH (a:Item) CREATE (a)-[:PAIRS]-\u003E(b:Ghost {id:99})",
+      "isSuccess": false,
+      "errorMessage": "Node table \u0027Ghost\u0027 does not exist in the catalog.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "property_on_unknown_label",
+      "cypher": "MATCH (x:Unknown) RETURN x.id",
+      "isSuccess": false,
+      "errorMessage": "Node table \u0027Unknown\u0027 does not exist in the catalog.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "aggregate_in_where",
+      "cypher": "MATCH (i:Item) WHERE COUNT(i) \u003E 0 RETURN i.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "i.id"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "nested_aggregate",
+      "cypher": "RETURN COUNT(COUNT(1))",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "COUNT(COUNT(1))"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "where_not_pattern_atom",
+      "cypher": "MATCH (a:Item), (b:Item) WHERE NOT (a)-[:PAIRS]-\u003E(b) RETURN a.id, b.id ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "1"
+        ],
+        [
+          "2",
+          "1"
+        ],
+        [
+          "2",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "where_not_pattern_atom_with_correlated_rel_property",
+      "cypher": "MATCH (hp:Item)-[c:CONTRACTS_WITH]-\u003E(mg:Item) MATCH (sc:Item) WHERE NOT (mg)-[:RESPONSIBLE_FOR {contract_dates: c.date_range}]-\u003E(sc) RETURN hp.id, mg.id, sc.id ORDER BY hp.id, mg.id, sc.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "hp.id",
+        "mg.id",
+        "sc.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "2",
+          "1"
+        ],
+        [
+          "1",
+          "2",
+          "2"
+        ]
+      ]
+    }
+  ]
+}

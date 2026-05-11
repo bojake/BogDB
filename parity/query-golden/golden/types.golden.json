@@ -1,0 +1,216 @@
+﻿{
+  "corpus": "corpus-types.cypher",
+  "blessedAt": "2026-03-22T01:14:34.9780261Z",
+  "queries": [
+    {
+      "name": "scan_all_rows",
+      "cypher": "MATCH (m:Metric) RETURN m.id, m.small, m.qty, m.ratio, m.exact, m.active, m.label ORDER BY m.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m.id",
+        "m.small",
+        "m.qty",
+        "m.ratio",
+        "m.exact",
+        "m.active",
+        "m.label"
+      ],
+      "rows": [
+        [
+          "1",
+          "7",
+          "100",
+          "1.5",
+          "1.125",
+          "True",
+          "alpha"
+        ],
+        [
+          "2",
+          "3",
+          "40",
+          "2.75",
+          "9.5",
+          "False",
+          "beta"
+        ],
+        [
+          "3",
+          "12",
+          "5",
+          "0.25",
+          "3.1415899999999999",
+          "True",
+          "gamma"
+        ],
+        [
+          "4",
+          "1",
+          "250",
+          "5.5",
+          "2.5",
+          "False",
+          "delta"
+        ]
+      ]
+    },
+    {
+      "name": "bool_true_filter",
+      "cypher": "MATCH (m:Metric) WHERE m.active = true RETURN m.id, m.label ORDER BY m.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m.id",
+        "m.label"
+      ],
+      "rows": [
+        [
+          "1",
+          "alpha"
+        ],
+        [
+          "3",
+          "gamma"
+        ]
+      ]
+    },
+    {
+      "name": "float_threshold",
+      "cypher": "MATCH (m:Metric) WHERE m.ratio \u003E 1.5 RETURN m.id, m.ratio ORDER BY m.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m.id",
+        "m.ratio"
+      ],
+      "rows": [
+        [
+          "2",
+          "2.75"
+        ],
+        [
+          "4",
+          "5.5"
+        ]
+      ]
+    },
+    {
+      "name": "double_order_desc",
+      "cypher": "MATCH (m:Metric) RETURN m.label, m.exact ORDER BY m.exact DESC",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m.label",
+        "m.exact"
+      ],
+      "rows": [
+        [
+          "alpha",
+          "1.125"
+        ],
+        [
+          "beta",
+          "9.5"
+        ],
+        [
+          "delta",
+          "2.5"
+        ],
+        [
+          "gamma",
+          "3.1415899999999999"
+        ]
+      ]
+    },
+    {
+      "name": "int_arithmetic_projection",
+      "cypher": "MATCH (m:Metric) RETURN m.id, m.small \u002B m.qty AS total ORDER BY m.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m.id",
+        "total"
+      ],
+      "rows": [
+        [
+          "1",
+          "107"
+        ],
+        [
+          "2",
+          "43"
+        ],
+        [
+          "3",
+          "17"
+        ],
+        [
+          "4",
+          "251"
+        ]
+      ]
+    },
+    {
+      "name": "mixed_numeric_projection",
+      "cypher": "MATCH (m:Metric) RETURN m.id, m.qty / 2 AS half_qty, m.exact \u002B m.ratio AS combined ORDER BY m.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m.id",
+        "half_qty",
+        "combined"
+      ],
+      "rows": [
+        [
+          "1",
+          "50",
+          "2.625"
+        ],
+        [
+          "2",
+          "20",
+          "12.25"
+        ],
+        [
+          "3",
+          "2",
+          "3.3915899999999999"
+        ],
+        [
+          "4",
+          "125",
+          "8"
+        ]
+      ]
+    },
+    {
+      "name": "aggregate_sum_int32",
+      "cypher": "MATCH (m:Metric) RETURN SUM(m.qty) AS total_qty",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "total_qty"
+      ],
+      "rows": [
+        [
+          "395"
+        ]
+      ]
+    },
+    {
+      "name": "aggregate_avg_double",
+      "cypher": "MATCH (m:Metric) RETURN AVG(m.exact) AS avg_exact",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "avg_exact"
+      ],
+      "rows": [
+        [
+          "4.0666475000000002"
+        ]
+      ]
+    }
+  ]
+}

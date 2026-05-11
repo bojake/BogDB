@@ -1,0 +1,335 @@
+﻿{
+  "corpus": "corpus-cyclic-patterns.cypher",
+  "blessedAt": "2026-03-27T23:04:10.0721580Z",
+  "queries": [
+    {
+      "name": "two_node_cycle_count",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person), (b)-[:KNOWS]-\u003E(a) RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "12"
+        ]
+      ]
+    },
+    {
+      "name": "two_node_cycle_pairs",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person), (b)-[:KNOWS]-\u003E(a) RETURN a.name, b.name ORDER BY a.name, b.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.name",
+        "b.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Bob"
+        ],
+        [
+          "Alice",
+          "Carol"
+        ],
+        [
+          "Alice",
+          "Dan"
+        ],
+        [
+          "Bob",
+          "Alice"
+        ],
+        [
+          "Bob",
+          "Carol"
+        ],
+        [
+          "Bob",
+          "Dan"
+        ],
+        [
+          "Carol",
+          "Alice"
+        ],
+        [
+          "Carol",
+          "Bob"
+        ],
+        [
+          "Carol",
+          "Dan"
+        ],
+        [
+          "Dan",
+          "Alice"
+        ],
+        [
+          "Dan",
+          "Bob"
+        ],
+        [
+          "Dan",
+          "Carol"
+        ]
+      ]
+    },
+    {
+      "name": "two_node_cycle_no_eve",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person), (b)-[:KNOWS]-\u003E(a) RETURN a.name, b.name ORDER BY a.name, b.name SKIP 0 LIMIT 100",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.name",
+        "b.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Bob"
+        ],
+        [
+          "Alice",
+          "Carol"
+        ],
+        [
+          "Alice",
+          "Dan"
+        ],
+        [
+          "Bob",
+          "Alice"
+        ],
+        [
+          "Bob",
+          "Carol"
+        ],
+        [
+          "Bob",
+          "Dan"
+        ],
+        [
+          "Carol",
+          "Alice"
+        ],
+        [
+          "Carol",
+          "Bob"
+        ],
+        [
+          "Carol",
+          "Dan"
+        ],
+        [
+          "Dan",
+          "Alice"
+        ],
+        [
+          "Dan",
+          "Bob"
+        ],
+        [
+          "Dan",
+          "Carol"
+        ]
+      ]
+    },
+    {
+      "name": "triangle_count",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:KNOWS]-\u003E(c:Person), (a)-[:KNOWS]-\u003E(c) RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "24"
+        ]
+      ]
+    },
+    {
+      "name": "triangle_distinct_ids",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:KNOWS]-\u003E(c:Person), (a)-[:KNOWS]-\u003E(c) WHERE a.id \u003C b.id AND b.id \u003C c.id RETURN a.name, b.name, c.name ORDER BY a.name, b.name, c.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.name",
+        "b.name",
+        "c.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Bob",
+          "Carol"
+        ],
+        [
+          "Alice",
+          "Bob",
+          "Dan"
+        ],
+        [
+          "Alice",
+          "Carol",
+          "Dan"
+        ],
+        [
+          "Bob",
+          "Carol",
+          "Dan"
+        ]
+      ]
+    },
+    {
+      "name": "triangle_with_edge_weight_filter",
+      "cypher": "MATCH (a:Person)-[e1:KNOWS]-\u003E(b:Person)-[e2:KNOWS]-\u003E(c:Person), (a)-[e3:KNOWS]-\u003E(c) WHERE e1.weight = 1 RETURN a.name, b.name, c.name ORDER BY a.name, b.name, c.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.name",
+        "b.name",
+        "c.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Bob",
+          "Carol"
+        ],
+        [
+          "Alice",
+          "Bob",
+          "Dan"
+        ],
+        [
+          "Bob",
+          "Alice",
+          "Carol"
+        ],
+        [
+          "Bob",
+          "Alice",
+          "Dan"
+        ]
+      ]
+    },
+    {
+      "name": "triangle_with_node_filter",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:KNOWS]-\u003E(c:Person), (a)-[:KNOWS]-\u003E(c) WHERE a.name = \u0027Alice\u0027 RETURN b.name, c.name ORDER BY b.name, c.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "b.name",
+        "c.name"
+      ],
+      "rows": [
+        [
+          "Bob",
+          "Carol"
+        ],
+        [
+          "Bob",
+          "Dan"
+        ],
+        [
+          "Carol",
+          "Bob"
+        ],
+        [
+          "Carol",
+          "Dan"
+        ],
+        [
+          "Dan",
+          "Bob"
+        ],
+        [
+          "Dan",
+          "Carol"
+        ]
+      ]
+    },
+    {
+      "name": "cross_label_triangle_count",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:MEMBER]-\u003E(o:Org), (a)-[:MEMBER]-\u003E(o) RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "cross_label_triangle_projection",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:MEMBER]-\u003E(o:Org), (a)-[:MEMBER]-\u003E(o) RETURN a.name, b.name, o.name ORDER BY a.name, b.name, o.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.name",
+        "b.name",
+        "o.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Bob",
+          "AlphaClub"
+        ],
+        [
+          "Bob",
+          "Alice",
+          "AlphaClub"
+        ]
+      ]
+    },
+    {
+      "name": "square_count",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:KNOWS]-\u003E(c:Person)-[:KNOWS]-\u003E(d:Person), (a)-[:KNOWS]-\u003E(d) RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "87"
+        ]
+      ]
+    },
+    {
+      "name": "eve_no_return_edge",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person), (b)-[:KNOWS]-\u003E(a) WHERE a.name = \u0027Eve\u0027 RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "one_directional_only",
+      "cypher": "MATCH (a:Person {name:\u0027Eve\u0027})-[:KNOWS]-\u003E(b:Person) RETURN b.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "b.name"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+﻿{
+  "corpus": "corpus-gds-shortest-path.cypher",
+  "blessedAt": "2026-03-27T23:25:17.9705440Z",
+  "queries": [
+    {
+      "name": "gds_version",
+      "cypher": "RETURN gds_version() IS NOT NULL AS has_version",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_version"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "graph_density",
+      "cypher": "RETURN graph_density() \u003E= 0.0 AS non_negative",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "non_negative"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "out_degree_a",
+      "cypher": "MATCH (c:City {id:0}) RETURN node_degree(id(c), \u0027out\u0027) AS deg",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "deg"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "in_degree_b",
+      "cypher": "MATCH (c:City {id:1}) RETURN node_degree(id(c), \u0027in\u0027) AS deg",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "deg"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "both_degree_b",
+      "cypher": "MATCH (c:City {id:1}) RETURN node_degree(id(c), \u0027both\u0027) AS deg",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "deg"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "sssp_call_returns_rows",
+      "cypher": "CALL sssp() YIELD node, distance RETURN COUNT(*) AS row_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "row_count"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "sssp_source_distance_zero",
+      "cypher": "CALL sssp() YIELD node, distance WHERE distance = 0.0 RETURN COUNT(*) AS cnt",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 33: no viable alternative at input \u0027CALL sssp() YIELD node, distance WHERE\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "sssp_all_non_negative",
+      "cypher": "CALL sssp() YIELD node, distance WHERE distance IS NOT NULL RETURN MIN(distance) \u003E= 0 AS ok",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 33: no viable alternative at input \u0027CALL sssp() YIELD node, distance WHERE\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "sssp_alias_shortest_path",
+      "cypher": "CALL shortest_path() YIELD node, distance RETURN COUNT(*) AS row_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "row_count"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "sssp_distance_scalar",
+      "cypher": "CALL sssp() YIELD * RETURN COUNT(*) AS primed",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 18: no viable alternative at input \u0027CALL sssp() YIELD *\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "has_path_a_to_b",
+      "cypher": "MATCH (a:City {id:0}), (b:City {id:1}) RETURN has_path(id(a), id(b), 3) AS reachable",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "reachable"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "has_path_a_to_e",
+      "cypher": "MATCH (a:City {id:0}), (e:City {id:4}) RETURN has_path(id(a), id(e), 5) AS reachable",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "reachable"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "k_hop_call_yields_rows",
+      "cypher": "CALL k_hop(maxHops := 2) YIELD node, source, hops RETURN COUNT(*) \u003E 0 AS has_rows",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_rows"
+      ],
+      "rows": []
+    },
+    {
+      "name": "k_hop_max_hops_bound",
+      "cypher": "CALL k_hop(maxHops := 1) YIELD node, source, hops RETURN MAX(hops) \u003C= 1 AS bounded",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "bounded"
+      ],
+      "rows": []
+    },
+    {
+      "name": "var_length_path_call",
+      "cypher": "CALL variable_length_path(maxHops := 2) YIELD source, target, length, path RETURN COUNT(*) \u003E 0 AS has_rows",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_rows"
+      ],
+      "rows": []
+    },
+    {
+      "name": "var_length_path_lengths_bounded",
+      "cypher": "CALL variable_length_path(maxHops := 2) YIELD source, target, length, path RETURN MAX(length) \u003C= 2 AS bounded",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "bounded"
+      ],
+      "rows": []
+    },
+    {
+      "name": "var_len_alias",
+      "cypher": "CALL var_length_path(maxHops := 1) YIELD source, target, length RETURN MIN(length) \u003E= 1 AS ok",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ok"
+      ],
+      "rows": []
+    }
+  ]
+}

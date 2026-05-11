@@ -1,0 +1,524 @@
+﻿{
+  "corpus": "corpus-boolean-operators.cypher",
+  "blessedAt": "2026-03-27T13:24:12.7991460Z",
+  "queries": [
+    {
+      "name": "and_true_true",
+      "cypher": "RETURN true AND true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "and_true_false",
+      "cypher": "RETURN true AND false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_false_true",
+      "cypher": "RETURN false AND true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_false_false",
+      "cypher": "RETURN false AND false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_true_null",
+      "cypher": "RETURN true AND NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_false_null",
+      "cypher": "RETURN false AND NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_null_true",
+      "cypher": "RETURN NULL AND true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_null_false",
+      "cypher": "RETURN NULL AND false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "and_null_null",
+      "cypher": "RETURN NULL AND NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "or_true_true",
+      "cypher": "RETURN true OR true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "or_true_false",
+      "cypher": "RETURN true OR false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "or_false_false",
+      "cypher": "RETURN false OR false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "or_true_null",
+      "cypher": "RETURN true OR NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "or_false_null",
+      "cypher": "RETURN false OR NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "or_null_null",
+      "cypher": "RETURN NULL OR NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "not_true",
+      "cypher": "RETURN NOT true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "not_false",
+      "cypher": "RETURN NOT false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "not_null",
+      "cypher": "RETURN NOT NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "xor_true_true",
+      "cypher": "RETURN true XOR true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "xor_true_false",
+      "cypher": "RETURN true XOR false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "xor_false_true",
+      "cypher": "RETURN false XOR true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "xor_false_false",
+      "cypher": "RETURN false XOR false AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "is_null_on_null",
+      "cypher": "RETURN NULL IS NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "is_null_on_value",
+      "cypher": "RETURN 42 IS NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "is_not_null_on_value",
+      "cypher": "RETURN \u0027hello\u0027 IS NOT NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "is_not_null_on_null",
+      "cypher": "RETURN NULL IS NOT NULL AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "compound_and_or",
+      "cypher": "RETURN (true AND false) OR true AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "compound_not_and",
+      "cypher": "RETURN NOT (true AND false) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "compound_not_or",
+      "cypher": "RETURN NOT (false OR false) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "null_short_circuit_and",
+      "cypher": "RETURN (false AND NULL) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "null_short_circuit_or",
+      "cypher": "RETURN (true OR NULL) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "bool_and_fn",
+      "cypher": "RETURN bool_and(true, true) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "bool_and_fn_false",
+      "cypher": "RETURN bool_and(true, false) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "bool_or_fn",
+      "cypher": "RETURN bool_or(false, true) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "bool_or_fn_false",
+      "cypher": "RETURN bool_or(false, false) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "bool_xor_fn",
+      "cypher": "RETURN bool_xor(true, false) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "bool_xor_fn_same",
+      "cypher": "RETURN bool_xor(true, true) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    }
+  ]
+}
