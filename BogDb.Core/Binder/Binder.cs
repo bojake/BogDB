@@ -1060,8 +1060,8 @@ public class Binder
             throw new FileNotFoundException($"COPY source file '{filePath}' does not exist.", filePath);
 
         using var stream = File.OpenRead(filePath);
-        using var reader = Parquet.ParquetReader.CreateAsync(stream).GetAwaiter().GetResult();
-        var columns = reader.Schema.GetDataFields()
+        var schema = Parquet.ParquetReader.ReadSchemaAsync(stream).GetAwaiter().GetResult();
+        var columns = schema.GetDataFields()
             .Select(f => f.Name)
             .ToList();
 

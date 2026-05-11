@@ -95,19 +95,26 @@ public sealed class ParquetImportTests : IDisposable
         var schema = new ParquetSchema(idField, labelField);
 
         using (var fs = File.Create(filePath))
-        using (var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult())
         {
-            // Row group 1
-            using (var rg1 = writer.CreateRowGroup())
+            var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
+            try
             {
-                rg1.WriteColumnAsync(new Parquet.Data.DataColumn(idField, new long[] { 1, 2, 3 })).GetAwaiter().GetResult();
-                rg1.WriteColumnAsync(new Parquet.Data.DataColumn(labelField, new[] { "A", "B", "C" })).GetAwaiter().GetResult();
+                // Row group 1
+                using (var rg1 = writer.CreateRowGroup())
+                {
+                    WriteColumn(rg1, idField, new long[] { 1, 2, 3 });
+                    WriteColumn(rg1, labelField, new[] { "A", "B", "C" });
+                }
+                // Row group 2
+                using (var rg2 = writer.CreateRowGroup())
+                {
+                    WriteColumn(rg2, idField, new long[] { 4, 5 });
+                    WriteColumn(rg2, labelField, new[] { "D", "E" });
+                }
             }
-            // Row group 2
-            using (var rg2 = writer.CreateRowGroup())
+            finally
             {
-                rg2.WriteColumnAsync(new Parquet.Data.DataColumn(idField, new long[] { 4, 5 })).GetAwaiter().GetResult();
-                rg2.WriteColumnAsync(new Parquet.Data.DataColumn(labelField, new[] { "D", "E" })).GetAwaiter().GetResult();
+                DisposeWriter(writer);
             }
         }
 
@@ -226,14 +233,21 @@ public sealed class ParquetImportTests : IDisposable
         var schema = new ParquetSchema(idField, nameField, ageField);
 
         using var fs = File.Create(filePath);
-        using var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
-        using var rg = writer.CreateRowGroup();
+        var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
+        try
+        {
+            using var rg = writer.CreateRowGroup();
 
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(idField, data.Select(d => d.id).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(nameField, data.Select(d => d.name).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(ageField, data.Select(d => d.age).ToArray())).GetAwaiter().GetResult();
+            WriteColumn(rg, idField, data.Select(d => d.id).ToArray());
+            WriteColumn(rg, nameField, data.Select(d => d.name).ToArray());
+            WriteColumn(rg, ageField, data.Select(d => d.age).ToArray());
 
-        return ToCypherPath(filePath);
+            return ToCypherPath(filePath);
+        }
+        finally
+        {
+            DisposeWriter(writer);
+        }
     }
 
     private string WriteEmployeeParquet(IReadOnlyList<(long id, string name, double salary)> data)
@@ -245,14 +259,21 @@ public sealed class ParquetImportTests : IDisposable
         var schema = new ParquetSchema(idField, nameField, salaryField);
 
         using var fs = File.Create(filePath);
-        using var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
-        using var rg = writer.CreateRowGroup();
+        var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
+        try
+        {
+            using var rg = writer.CreateRowGroup();
 
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(idField, data.Select(d => d.id).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(nameField, data.Select(d => d.name).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(salaryField, data.Select(d => d.salary).ToArray())).GetAwaiter().GetResult();
+            WriteColumn(rg, idField, data.Select(d => d.id).ToArray());
+            WriteColumn(rg, nameField, data.Select(d => d.name).ToArray());
+            WriteColumn(rg, salaryField, data.Select(d => d.salary).ToArray());
 
-        return ToCypherPath(filePath);
+            return ToCypherPath(filePath);
+        }
+        finally
+        {
+            DisposeWriter(writer);
+        }
     }
 
     private string WriteProductParquet(IReadOnlyList<(long id, string name, double price)> data)
@@ -264,14 +285,21 @@ public sealed class ParquetImportTests : IDisposable
         var schema = new ParquetSchema(idField, nameField, priceField);
 
         using var fs = File.Create(filePath);
-        using var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
-        using var rg = writer.CreateRowGroup();
+        var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
+        try
+        {
+            using var rg = writer.CreateRowGroup();
 
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(idField, data.Select(d => d.id).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(nameField, data.Select(d => d.name).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(priceField, data.Select(d => d.price).ToArray())).GetAwaiter().GetResult();
+            WriteColumn(rg, idField, data.Select(d => d.id).ToArray());
+            WriteColumn(rg, nameField, data.Select(d => d.name).ToArray());
+            WriteColumn(rg, priceField, data.Select(d => d.price).ToArray());
 
-        return ToCypherPath(filePath);
+            return ToCypherPath(filePath);
+        }
+        finally
+        {
+            DisposeWriter(writer);
+        }
     }
 
     private string WriteRelParquet(IReadOnlyList<(long fromId, long toId, long since)> data)
@@ -283,13 +311,38 @@ public sealed class ParquetImportTests : IDisposable
         var schema = new ParquetSchema(fromIdField, toIdField, sinceField);
 
         using var fs = File.Create(filePath);
-        using var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
-        using var rg = writer.CreateRowGroup();
+        var writer = ParquetWriter.CreateAsync(schema, fs).GetAwaiter().GetResult();
+        try
+        {
+            using var rg = writer.CreateRowGroup();
 
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(fromIdField, data.Select(d => d.fromId).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(toIdField, data.Select(d => d.toId).ToArray())).GetAwaiter().GetResult();
-        rg.WriteColumnAsync(new Parquet.Data.DataColumn(sinceField, data.Select(d => d.since).ToArray())).GetAwaiter().GetResult();
+            WriteColumn(rg, fromIdField, data.Select(d => d.fromId).ToArray());
+            WriteColumn(rg, toIdField, data.Select(d => d.toId).ToArray());
+            WriteColumn(rg, sinceField, data.Select(d => d.since).ToArray());
 
-        return ToCypherPath(filePath);
+            return ToCypherPath(filePath);
+        }
+        finally
+        {
+            DisposeWriter(writer);
+        }
+    }
+
+    private static void WriteColumn<T>(ParquetRowGroupWriter rowGroupWriter, DataField field, T[] values)
+        where T : struct
+    {
+        rowGroupWriter.WriteAsync<T>(field, values.AsMemory(), null, null, default)
+            .GetAwaiter().GetResult();
+    }
+
+    private static void WriteColumn(ParquetRowGroupWriter rowGroupWriter, DataField field, string[] values)
+    {
+        rowGroupWriter.WriteAsync(field, values, null)
+            .GetAwaiter().GetResult();
+    }
+
+    private static void DisposeWriter(ParquetWriter writer)
+    {
+        writer.DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 }
