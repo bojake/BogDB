@@ -8,6 +8,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.FTS</PackageId>
+    <Title>BogDB Full-Text Search Extension</Title>
+    <Description>Full-text search extension package for BogDB.</Description>
   </PropertyGroup>
 
 </Project>

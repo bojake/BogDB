@@ -1,0 +1,13 @@
+BogDb.Core/BogDb.Core.csproj
+BogDb.Extensions.Algo/BogDb.Extensions.Algo.csproj
+BogDb.Extensions.Demo/BogDb.Extensions.Demo.csproj
+BogDb.Extensions.DuckDB/BogDb.Extensions.DuckDB.csproj
+BogDb.Extensions.FTS/BogDb.Extensions.FTS.csproj
+BogDb.Extensions.HttpFS/BogDb.Extensions.HttpFS.csproj
+BogDb.Extensions.Json/BogDb.Extensions.Json.csproj
+BogDb.Extensions.LLM/BogDb.Extensions.LLM.csproj
+BogDb.Extensions.Postgres/BogDb.Extensions.Postgres.csproj
+BogDb.Extensions.SQLite/BogDb.Extensions.SQLite.csproj
+BogDb.Extensions.Vector/BogDb.Extensions.Vector.csproj
+BogDb.Mcp.Server/BogDb.Mcp.Server.csproj
+BogDb.Mcp.Codegen.Server/BogDb.Mcp.Codegen.Server.csproj

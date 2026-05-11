@@ -12,6 +12,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Extensions.DuckDB</PackageId>
+    <Title>BogDB DuckDB Extension</Title>
+    <Description>DuckDB scan and attach extension package for BogDB.</Description>
   </PropertyGroup>
 
 </Project>

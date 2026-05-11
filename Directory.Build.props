@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == ''">alpha.1</VersionSuffix>
+    <PackageVersion Condition="'$(PackageVersion)' == '' and '$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(VersionPrefix)</PackageVersion>
+    <Authors>Beyond Ordinary Software Solutions</Authors>
+    <Company>Beyond Ordinary Software Solutions</Company>
+    <Copyright>Copyright (c) Beyond Ordinary Software Solutions</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://beyond-ordinary.com/bogdb</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/BeyondOrdinary/BogDB</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>bogdb;graph;database;cypher;dotnet;ai;mcp</PackageTags>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

@@ -4,7 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
+    <PackageId>BogDB.Core</PackageId>
+    <Title>BogDB Core</Title>
+    <Description>Embeddable property graph database engine for .NET and AI-native applications.</Description>
   </PropertyGroup>
 
   <ItemGroup>
