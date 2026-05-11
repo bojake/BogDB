@@ -1,0 +1,162 @@
+﻿{
+  "corpus": "corpus-agg.cypher",
+  "blessedAt": "2026-03-21T23:25:00.4744029Z",
+  "queries": [
+    {
+      "name": "count_all",
+      "cypher": "MATCH (e:Employee) RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "6"
+        ]
+      ]
+    },
+    {
+      "name": "count_by_dept",
+      "cypher": "MATCH (e:Employee) RETURN e.dept, COUNT(*) AS cnt ORDER BY e.dept",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.dept",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "eng",
+          "3"
+        ],
+        [
+          "mkt",
+          "2"
+        ],
+        [
+          "ops",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "sum_salary_by_dept",
+      "cypher": "MATCH (e:Employee) RETURN e.dept, SUM(e.salary) AS total ORDER BY e.dept",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.dept",
+        "total"
+      ],
+      "rows": [
+        [
+          "eng",
+          "310000"
+        ],
+        [
+          "mkt",
+          "175000"
+        ],
+        [
+          "ops",
+          "70000"
+        ]
+      ]
+    },
+    {
+      "name": "avg_salary_by_dept",
+      "cypher": "MATCH (e:Employee) RETURN e.dept, AVG(e.salary) AS avg_sal ORDER BY e.dept",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.dept",
+        "avg_sal"
+      ],
+      "rows": [
+        [
+          "eng",
+          "103333.33333333333"
+        ],
+        [
+          "mkt",
+          "87500"
+        ],
+        [
+          "ops",
+          "70000"
+        ]
+      ]
+    },
+    {
+      "name": "min_max_salary",
+      "cypher": "MATCH (e:Employee) RETURN MIN(e.salary) AS min_sal, MAX(e.salary) AS max_sal",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "min_sal",
+        "max_sal"
+      ],
+      "rows": [
+        [
+          "70000",
+          "120000"
+        ]
+      ]
+    },
+    {
+      "name": "having_dept_count_gt_1",
+      "cypher": "MATCH (e:Employee) WITH e.dept AS dept, COUNT(*) AS cnt WHERE cnt \u003E 1 RETURN dept, cnt ORDER BY dept",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dept",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "eng",
+          "3"
+        ],
+        [
+          "mkt",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "distinct_depts",
+      "cypher": "MATCH (e:Employee) RETURN DISTINCT e.dept ORDER BY e.dept",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.dept"
+      ],
+      "rows": [
+        [
+          "eng"
+        ],
+        [
+          "mkt"
+        ],
+        [
+          "ops"
+        ]
+      ]
+    },
+    {
+      "name": "count_distinct_depts",
+      "cypher": "MATCH (e:Employee) RETURN COUNT(DISTINCT e.dept) AS unique_depts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "unique_depts"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    }
+  ]
+}

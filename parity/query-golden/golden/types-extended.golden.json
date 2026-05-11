@@ -1,0 +1,206 @@
+﻿{
+  "corpus": "corpus-types-extended.cypher",
+  "blessedAt": "2026-03-22T01:30:35.9517613Z",
+  "queries": [
+    {
+      "name": "scan_all_rows",
+      "cypher": "MATCH (e:Event) RETURN e.id, e.u32, e.u64, e.created, e.observed_at, e.active, e.label ORDER BY e.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "e.u32",
+        "e.u64",
+        "e.created",
+        "e.observed_at",
+        "e.active",
+        "e.label"
+      ],
+      "rows": [
+        [
+          "1",
+          "7",
+          "1000",
+          "2024-01-15",
+          "2024-01-15T08:00:00Z",
+          "True",
+          "alpha"
+        ],
+        [
+          "2",
+          "42",
+          "2500",
+          "2024-02-20",
+          "2024-02-20T09:30:00Z",
+          "False",
+          "beta"
+        ],
+        [
+          "3",
+          "5",
+          "9999",
+          "2024-03-10",
+          "2024-03-10T12:45:00Z",
+          "True",
+          "gamma"
+        ]
+      ]
+    },
+    {
+      "name": "unsigned_filter",
+      "cypher": "MATCH (e:Event) WHERE e.u32 \u003E 6 RETURN e.id, e.u32 ORDER BY e.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "e.u32"
+      ],
+      "rows": [
+        [
+          "1",
+          "7"
+        ],
+        [
+          "2",
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "unsigned_order_desc",
+      "cypher": "MATCH (e:Event) RETURN e.label, e.u64 ORDER BY e.u64 DESC",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.label",
+        "e.u64"
+      ],
+      "rows": [
+        [
+          "alpha",
+          "1000"
+        ],
+        [
+          "beta",
+          "2500"
+        ],
+        [
+          "gamma",
+          "9999"
+        ]
+      ]
+    },
+    {
+      "name": "date_order",
+      "cypher": "MATCH (e:Event) RETURN e.id, e.created ORDER BY e.created",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "e.created"
+      ],
+      "rows": [
+        [
+          "1",
+          "2024-01-15"
+        ],
+        [
+          "2",
+          "2024-02-20"
+        ],
+        [
+          "3",
+          "2024-03-10"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_order",
+      "cypher": "MATCH (e:Event) RETURN e.id, e.observed_at ORDER BY e.observed_at DESC",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "e.observed_at"
+      ],
+      "rows": [
+        [
+          "1",
+          "2024-01-15T08:00:00Z"
+        ],
+        [
+          "2",
+          "2024-02-20T09:30:00Z"
+        ],
+        [
+          "3",
+          "2024-03-10T12:45:00Z"
+        ]
+      ]
+    },
+    {
+      "name": "date_extract_month",
+      "cypher": "MATCH (e:Event) RETURN e.id, date_part(\u0027month\u0027, e.created) AS month ORDER BY e.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "month"
+      ],
+      "rows": [
+        [
+          "1",
+          "1"
+        ],
+        [
+          "2",
+          "2"
+        ],
+        [
+          "3",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_to_epoch_ms",
+      "cypher": "MATCH (e:Event) RETURN e.id, to_epoch_ms(e.observed_at) AS ms ORDER BY e.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "ms"
+      ],
+      "rows": [
+        [
+          "1",
+          "1705305600000"
+        ],
+        [
+          "2",
+          "1708421400000"
+        ],
+        [
+          "3",
+          "1710074700000"
+        ]
+      ]
+    },
+    {
+      "name": "active_recent",
+      "cypher": "MATCH (e:Event) WHERE e.active = true AND e.created \u003E= date(\u00272024-01-31\u0027) RETURN e.id, e.label ORDER BY e.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "e.id",
+        "e.label"
+      ],
+      "rows": [
+        [
+          "3",
+          "gamma"
+        ]
+      ]
+    }
+  ]
+}

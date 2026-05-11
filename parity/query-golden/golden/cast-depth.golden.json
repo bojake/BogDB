@@ -1,0 +1,650 @@
+﻿{
+  "corpus": "corpus-cast-depth.cypher",
+  "blessedAt": "2026-03-27T13:21:01.2900600Z",
+  "queries": [
+    {
+      "name": "int64_from_string",
+      "cypher": "RETURN to_int64(\u002742\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "int64_from_float_string",
+      "cypher": "RETURN to_int64(\u00273.7\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "int32_from_int",
+      "cypher": "RETURN to_int32(1000000) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "1000000"
+        ]
+      ]
+    },
+    {
+      "name": "int16_from_int",
+      "cypher": "RETURN to_int16(32000) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "32000"
+        ]
+      ]
+    },
+    {
+      "name": "int8_from_int",
+      "cypher": "RETURN to_int8(100) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "100"
+        ]
+      ]
+    },
+    {
+      "name": "uint64_from_int",
+      "cypher": "RETURN to_uint64(999) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "999"
+        ]
+      ]
+    },
+    {
+      "name": "uint32_from_int",
+      "cypher": "RETURN to_uint32(500) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "500"
+        ]
+      ]
+    },
+    {
+      "name": "uint16_from_int",
+      "cypher": "RETURN to_uint16(65000) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "65000"
+        ]
+      ]
+    },
+    {
+      "name": "uint8_from_int",
+      "cypher": "RETURN to_uint8(200) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "200"
+        ]
+      ]
+    },
+    {
+      "name": "integer_alias",
+      "cypher": "RETURN integer(42) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "bigint_alias",
+      "cypher": "RETURN bigint(100) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "100"
+        ]
+      ]
+    },
+    {
+      "name": "smallint_alias",
+      "cypher": "RETURN smallint(1000) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "1000"
+        ]
+      ]
+    },
+    {
+      "name": "tinyint_alias",
+      "cypher": "RETURN tinyint(50) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "50"
+        ]
+      ]
+    },
+    {
+      "name": "double_from_int",
+      "cypher": "RETURN to_double(7) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "7"
+        ]
+      ]
+    },
+    {
+      "name": "double_from_string",
+      "cypher": "RETURN to_double(\u00273.14\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "3.1400000000000001"
+        ]
+      ]
+    },
+    {
+      "name": "float_from_int",
+      "cypher": "RETURN to_float(42) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "float32_from_int",
+      "cypher": "RETURN to_float32(123) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "123"
+        ]
+      ]
+    },
+    {
+      "name": "bool_true_from_int",
+      "cypher": "RETURN to_bool(1) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "bool_false_from_int",
+      "cypher": "RETURN to_bool(0) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "bool_from_string_true",
+      "cypher": "RETURN to_bool(\u0027true\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "bool_from_string_false",
+      "cypher": "RETURN to_bool(\u0027false\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "string_from_int",
+      "cypher": "RETURN to_string(42) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "string_from_double",
+      "cypher": "RETURN to_string(3.14) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "3.14"
+        ]
+      ]
+    },
+    {
+      "name": "string_from_bool",
+      "cypher": "RETURN to_string(true) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "varchar_alias",
+      "cypher": "RETURN varchar(100) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "100"
+        ]
+      ]
+    },
+    {
+      "name": "str_alias",
+      "cypher": "RETURN str(99) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "99"
+        ]
+      ]
+    },
+    {
+      "name": "to_date_from_string",
+      "cypher": "RETURN to_date(\u00272024-07-15\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2024-07-15"
+        ]
+      ]
+    },
+    {
+      "name": "to_timestamp_from_string",
+      "cypher": "RETURN to_timestamp(\u00272024-07-15T10:00:00\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2024-07-15T10:00:00"
+        ]
+      ]
+    },
+    {
+      "name": "cast_to_int64",
+      "cypher": "RETURN cast(42.9, \u0027int64\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ]
+    },
+    {
+      "name": "cast_to_double",
+      "cypher": "RETURN cast(7, \u0027double\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "7"
+        ]
+      ]
+    },
+    {
+      "name": "cast_to_bool",
+      "cypher": "RETURN cast(1, \u0027bool\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "cast_to_string",
+      "cypher": "RETURN cast(123, \u0027string\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "123"
+        ]
+      ]
+    },
+    {
+      "name": "cast_to_date",
+      "cypher": "RETURN cast(\u00272024-01-15\u0027, \u0027date\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2024-01-15"
+        ]
+      ]
+    },
+    {
+      "name": "try_cast_alias",
+      "cypher": "RETURN try_cast(99, \u0027int64\u0027) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "99"
+        ]
+      ]
+    },
+    {
+      "name": "null_propagation_int",
+      "cypher": "RETURN to_int64(NULL) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "null_propagation_double",
+      "cypher": "RETURN to_double(NULL) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "null_propagation_bool",
+      "cypher": "RETURN to_bool(NULL) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "null_propagation_string",
+      "cypher": "RETURN to_string(NULL) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E"
+        ]
+      ]
+    },
+    {
+      "name": "typeof_int",
+      "cypher": "RETURN typeof(42) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "INT64"
+        ]
+      ]
+    },
+    {
+      "name": "typeof_double",
+      "cypher": "RETURN typeof(3.14) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "DOUBLE"
+        ]
+      ]
+    },
+    {
+      "name": "typeof_string",
+      "cypher": "RETURN typeof(\u0027hello\u0027) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "STRING"
+        ]
+      ]
+    },
+    {
+      "name": "typeof_bool",
+      "cypher": "RETURN typeof(true) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "BOOL"
+        ]
+      ]
+    },
+    {
+      "name": "typeof_null",
+      "cypher": "RETURN typeof(NULL) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "NULL"
+        ]
+      ]
+    },
+    {
+      "name": "pg_typeof_alias",
+      "cypher": "RETURN pg_typeof(100) AS t",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "t"
+      ],
+      "rows": [
+        [
+          "INT64"
+        ]
+      ]
+    },
+    {
+      "name": "int_int_chain",
+      "cypher": "RETURN to_int32(to_int64(\u0027255\u0027)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "255"
+        ]
+      ]
+    },
+    {
+      "name": "double_to_string_to_double",
+      "cypher": "RETURN to_double(to_string(2.71828)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "2.71828"
+        ]
+      ]
+    }
+  ]
+}

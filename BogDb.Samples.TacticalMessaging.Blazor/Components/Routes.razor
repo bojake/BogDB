@@ -1,0 +1,14 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <div class="card" style="max-width:480px;margin:4rem auto;text-align:center;">
+                <h2 style="color:var(--amber);margin-bottom:0.5rem;">⚠️ Page Not Found</h2>
+                <p style="color:var(--text-muted);">The requested route does not exist.</p>
+                <a href="/" class="btn btn-accent" style="margin-top:1rem;">← Back to Dashboard</a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

@@ -1,0 +1,238 @@
+﻿{
+  "corpus": "corpus-transactional-graph.cypher",
+  "blessedAt": "2026-04-01T19:10:25.2382640Z",
+  "queries": [
+    {
+      "name": "begin_graph_insert_rollback",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "create_bob_worksat_in_tx",
+      "cypher": "MATCH (p:Person {id:2}), (c:Company {id:10}) CREATE (p)-[:WORKS_AT {since:2024}]-\u003E(c)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "10",
+          "Acme"
+        ]
+      ]
+    },
+    {
+      "name": "visible_chain_inside_insert_tx",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT]-\u003E(:Company)-[:PARTNERS_WITH]-\u003E(c2:Company) RETURN p.id, c2.id ORDER BY p.id, c2.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c2.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "20"
+        ],
+        [
+          "2",
+          "20"
+        ]
+      ]
+    },
+    {
+      "name": "rollback_graph_insert",
+      "cypher": "ROLLBACK",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "hidden_chain_after_insert_rollback",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT]-\u003E(:Company)-[:PARTNERS_WITH]-\u003E(c2:Company) RETURN p.id, c2.id ORDER BY p.id, c2.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c2.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "20"
+        ]
+      ]
+    },
+    {
+      "name": "begin_graph_mutation_rollback",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "update_worksat_in_tx",
+      "cypher": "MATCH (p:Person {id:1})-[r:WORKS_AT]-\u003E(c:Company {id:10}) SET r.since = 2030 RETURN r.since",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.since"
+      ],
+      "rows": [
+        [
+          "2030"
+        ]
+      ]
+    },
+    {
+      "name": "delete_partner_in_tx",
+      "cypher": "MATCH (a:Company {id:10})-[r:PARTNERS_WITH]-\u003E(b:Company {id:20}) DELETE r",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "20",
+          "Beta"
+        ]
+      ]
+    },
+    {
+      "name": "visible_updated_worksat_inside_tx",
+      "cypher": "MATCH (p:Person)-[r:WORKS_AT]-\u003E(c:Company) RETURN p.id, c.id, r.since ORDER BY p.id, c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "10",
+          "2030"
+        ]
+      ]
+    },
+    {
+      "name": "hidden_partner_inside_delete_tx",
+      "cypher": "MATCH (a:Company)-[r:PARTNERS_WITH]-\u003E(b:Company) RETURN a.id, b.id, r.strength ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "r.strength"
+      ],
+      "rows": []
+    },
+    {
+      "name": "rollback_graph_mutation",
+      "cypher": "ROLLBACK",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "restored_graph_after_mutation_rollback",
+      "cypher": "MATCH (p:Person)-[r:WORKS_AT]-\u003E(c:Company) RETURN p.id, c.id, r.since ORDER BY p.id, c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "10",
+          "2020"
+        ]
+      ]
+    },
+    {
+      "name": "restored_partner_after_mutation_rollback",
+      "cypher": "MATCH (a:Company)-[r:PARTNERS_WITH]-\u003E(b:Company) RETURN a.id, b.id, r.strength ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "r.strength"
+      ],
+      "rows": [
+        [
+          "10",
+          "20",
+          "9"
+        ]
+      ]
+    },
+    {
+      "name": "begin_graph_insert_commit",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "create_bob_worksat_commit_tx",
+      "cypher": "MATCH (p:Person {id:2}), (c:Company {id:10}) CREATE (p)-[:WORKS_AT {since:2024}]-\u003E(c)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "10",
+          "Acme"
+        ]
+      ]
+    },
+    {
+      "name": "commit_graph_insert",
+      "cypher": "COMMIT",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "visible_chain_after_commit",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT]-\u003E(:Company)-[:PARTNERS_WITH]-\u003E(c2:Company) RETURN p.id, c2.id ORDER BY p.id, c2.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "c2.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "20"
+        ],
+        [
+          "2",
+          "20"
+        ]
+      ]
+    }
+  ]
+}

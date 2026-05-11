@@ -1,0 +1,161 @@
+@page "/concepts"
+@rendermode InteractiveServer
+
+<PageTitle>Concept Guide · SQL→Cypher</PageTitle>
+
+<div class="page-header">
+    <h1>🗺️ Concept Guide</h1>
+    <p>The mental model shifts you need to move from relational thinking to graph thinking.</p>
+</div>
+
+<div class="concept-grid">
+
+    <div class="concept-card">
+        <div class="concept-icon">📋</div>
+        <h3>Tables → Labeled Nodes</h3>
+        <div class="concept-body">
+            <p>A SQL table maps to a <strong>node label</strong> in Cypher. Each row in the table becomes a node with that label.</p>
+            <div class="diff-mini">
+                <div class="mini-sql"><code>FROM Customer</code></div>
+                <div class="mini-arrow">→</div>
+                <div class="mini-cypher"><code>MATCH (c:Customer)</code></div>
+            </div>
+            <ul>
+                <li>Labels group nodes by type (like a table name)</li>
+                <li>A node can have <em>multiple</em> labels simultaneously</li>
+                <li>No rigid schema — nodes of the same label can have different properties</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">🔗</div>
+        <h3>Foreign Keys → Relationships</h3>
+        <div class="concept-body">
+            <p>SQL uses foreign key columns and JOIN to express connections. Cypher stores connections as first-class <strong>relationship</strong> objects with a type and optional properties.</p>
+            <div class="diff-mini">
+                <div class="mini-sql"><code>JOIN Order ON order.cust_id = c.id</code></div>
+                <div class="mini-arrow">→</div>
+                <div class="mini-cypher"><code>(c)-[:PLACED]->(o)</code></div>
+            </div>
+            <ul>
+                <li>No foreign key column — the edge IS the connection</li>
+                <li>Relationships have a <strong>direction</strong> (arrow in the pattern)</li>
+                <li>Relationships can carry properties: <code>[:CONTAINS {"{qty: 2}"}]</code></li>
+                <li>Traversal is O(1) per hop — no full table scan for joining</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">🔍</div>
+        <h3>MATCH — Pattern Matching vs FROM</h3>
+        <div class="concept-body">
+            <p><code>MATCH</code> describes a <em>graph pattern</em> to find, not just a table to scan. You declare the shape of the subgraph you want, and the engine finds all instances.</p>
+            <div class="diff-mini">
+                <div class="mini-sql"><code>FROM A JOIN B JOIN C</code></div>
+                <div class="mini-arrow">→</div>
+                <div class="mini-cypher"><code>MATCH (a)-[:R1]->(b)-[:R2]->(c)</code></div>
+            </div>
+            <ul>
+                <li>The MATCH pattern reads like a diagram of the graph</li>
+                <li>Multiple MATCH clauses can be combined (like multiple FROMs)</li>
+                <li>Pattern length is declared, not looped over</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">🌿</div>
+        <h3>Traversal Depth — * Operator</h3>
+        <div class="concept-body">
+            <p>SQL needs a recursive CTE to follow paths of variable length. Cypher uses the <strong>star operator</strong> directly in the relationship pattern.</p>
+            <div class="diff-mini">
+                <div class="mini-sql"><code>WITH RECURSIVE r AS (...)</code></div>
+                <div class="mini-arrow">→</div>
+                <div class="mini-cypher"><code>(a)-[:R*1..5]->(b)</code></div>
+            </div>
+            <ul>
+                <li><code>*1..3</code> — between 1 and 3 hops</li>
+                <li><code>*</code> — any depth (use carefully)</li>
+                <li>Replaces 10+ lines of recursive SQL in 1 pattern element</li>
+                <li>Works with <code>shortestPath()</code> and <code>allShortestPaths()</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">📊</div>
+        <h3>GROUP BY → WITH</h3>
+        <div class="concept-body">
+            <p>SQL uses an explicit <code>GROUP BY</code> clause. Cypher uses <code>WITH</code> — any non-aggregate expression listed in <code>WITH</code> implicitly acts as the group key.</p>
+            <div class="diff-mini">
+                <div class="mini-sql"><code>GROUP BY country</code></div>
+                <div class="mini-arrow">→</div>
+                <div class="mini-cypher"><code>WITH c.country AS country, COUNT(*)</code></div>
+            </div>
+            <ul>
+                <li><code>WITH</code> is like a pipe — it passes data to the next clause</li>
+                <li>Variables NOT in the aggregate are the implicit group keys</li>
+                <li><code>HAVING</code> ≈ adding a <code>WHERE</code> after <code>WITH</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">📜</div>
+        <h3>Cypher Clause Order</h3>
+        <div class="concept-body">
+            <p>Cypher has a predictable clause sequence. Each clause transforms the working set of rows and passes it to the next.</p>
+            <table class="mini-table">
+                <thead><tr><th>Clause</th><th>Purpose</th><th>SQL parallel</th></tr></thead>
+                <tbody>
+                    <tr><td><code>MATCH</code></td><td>Find patterns</td><td>FROM + JOIN</td></tr>
+                    <tr><td><code>WHERE</code></td><td>Filter rows</td><td>WHERE</td></tr>
+                    <tr><td><code>WITH</code></td><td>Pipe &amp; aggregate</td><td>SELECT + GROUP BY</td></tr>
+                    <tr><td><code>RETURN</code></td><td>Project output</td><td>SELECT</td></tr>
+                    <tr><td><code>ORDER BY</code></td><td>Sort</td><td>ORDER BY</td></tr>
+                    <tr><td><code>LIMIT</code></td><td>Top N</td><td>LIMIT / TOP</td></tr>
+                    <tr><td><code>SKIP</code></td><td>Offset</td><td>OFFSET</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">🧮</div>
+        <h3>Aggregate Functions</h3>
+        <div class="concept-body">
+            <p>Core aggregate functions map 1-to-1. The key addition in Cypher is <code>COLLECT()</code>, which builds a list.</p>
+            <table class="mini-table">
+                <thead><tr><th>SQL</th><th>Cypher</th></tr></thead>
+                <tbody>
+                    <tr><td><code>COUNT(*)</code></td><td><code>COUNT(*)</code></td></tr>
+                    <tr><td><code>COUNT(DISTINCT x)</code></td><td><code>COUNT(DISTINCT x)</code></td></tr>
+                    <tr><td><code>SUM(x)</code></td><td><code>SUM(x)</code></td></tr>
+                    <tr><td><code>AVG(x)</code></td><td><code>AVG(x)</code></td></tr>
+                    <tr><td><code>MIN(x) / MAX(x)</code></td><td><code>MIN(x) / MAX(x)</code></td></tr>
+                    <tr><td><code>array_agg(x)</code></td><td><code>COLLECT(x)</code></td></tr>
+                    <tr><td>No equivalent</td><td><code>SIZE(list)</code></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="concept-card">
+        <div class="concept-icon">🚀</div>
+        <h3>Graph-Only Features</h3>
+        <div class="concept-body">
+            <p>These capabilities have no clean SQL equivalent — they are the core reason to use a graph database.</p>
+            <ul>
+                <li><strong>shortestPath()</strong> — built-in BFS shortest path in O(V+E)</li>
+                <li><strong>allShortestPaths()</strong> — all shortest paths of equal length</li>
+                <li><strong>Variable paths *</strong> — traverse hierarchies without recursion</li>
+                <li><strong>CALL pagerank()</strong> — structural importance ranking</li>
+                <li><strong>CALL wcc()</strong> — weakly connected components</li>
+                <li><strong>Pattern predicates</strong> — filter on existence of sub-patterns inline</li>
+            </ul>
+        </div>
+    </div>
+
+</div>

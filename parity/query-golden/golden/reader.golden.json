@@ -1,0 +1,22 @@
+﻿{
+  "corpus": "corpus-reader.cypher",
+  "blessedAt": "2026-04-01T19:10:25.2382640Z",
+  "queries": [
+    {
+      "name": "load_csv_missing",
+      "cypher": "LOAD FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_e977e41c596740d698620d8aec5796e2/missing.csv\u0027 RETURN *",
+      "isSuccess": false,
+      "errorMessage": "COPY source file \u0027{fixture_dir}/missing.csv\u0027 does not exist.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "load_csv_typed_missing",
+      "cypher": "LOAD WITH HEADERS (id INT64) FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_e977e41c596740d698620d8aec5796e2/missing.csv\u0027 RETURN *",
+      "isSuccess": false,
+      "errorMessage": "COPY source file \u0027{fixture_dir}/missing.csv\u0027 does not exist.",
+      "columnNames": [],
+      "rows": []
+    }
+  ]
+}

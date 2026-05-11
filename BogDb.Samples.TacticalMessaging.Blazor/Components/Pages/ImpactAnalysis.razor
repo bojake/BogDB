@@ -1,0 +1,108 @@
+@page "/impact"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">💥 Impact Analysis</h1>
+    <p class="page-sub">Select a change event to trace its full blast radius across all three compliance lanes</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Change Event</h2>
+        <select class="form-select" @onchange="OnChangeSelected">
+            <option value="">— select a change event —</option>
+            @foreach (var chg in _changeEvents)
+            {
+                <option value="@chg.ExtId">@chg.ExtId — @chg.Severity — @chg.Description</option>
+            }
+        </select>
+    </div>
+    @if (!string.IsNullOrEmpty(_selectedChange))
+    {
+        var chg = _changeEvents.FirstOrDefault(c => c.ExtId == _selectedChange);
+        if (chg is not null)
+        {
+            <div class="impact-chain">
+                <span class="impact-node badge sev-@(chg.Severity.ToLowerInvariant())">@chg.Severity</span>
+                <span class="impact-arrow">→</span>
+                <span class="impact-node lane-a">@chg.AffectingStandard</span>
+                <span class="impact-arrow">→</span>
+                <span class="text-muted" style="font-size:0.82rem;">@chg.Description</span>
+            </div>
+        }
+    }
+</div>
+
+@if (_loading)
+{
+    <div class="loading">Traversing compliance graph…</div>
+}
+else if (_rows.Count > 0)
+{
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Blast Radius — @_rows.Count impact paths</h2>
+            <span class="badge badge-red">Full lineage</span>
+        </div>
+        <p class="card-sub">Each row traces: MessageField → TranslatorComponent → Subsystem → MissionCapability + Requirement → TestCase → Evidence → CertPackage</p>
+        <table class="data-table" style="margin-top:0.75rem;">
+            <thead>
+                <tr>
+                    <th>Field</th><th>Component</th><th>Subsystem</th>
+                    <th>Capability</th><th>Requirement</th><th>Test</th>
+                    <th>Verdict</th><th>Cert Package</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr>
+                    <td><span class="impact-node lane-a" style="font-size:0.72rem;">@r.FieldName</span></td>
+                    <td><span class="impact-node lane-b" style="font-size:0.72rem;">@r.ComponentName</span></td>
+                    <td><span class="impact-node lane-b" style="font-size:0.72rem;">@r.SubsystemName</span></td>
+                    <td><span class="impact-node lane-c" style="font-size:0.72rem;">@r.CapabilityName</span></td>
+                    <td class="mono">@r.RequirementId</td>
+                    <td style="font-size:0.78rem;">@r.TestName</td>
+                    <td><span class="badge @VerdictBadge(r.Verdict)">@r.Verdict</span></td>
+                    <td style="font-size:0.78rem;">@r.CertPackage</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else if (!string.IsNullOrEmpty(_selectedChange) && !_loading)
+{
+    <div class="card empty-state">
+        <span class="icon">🔍</span>
+        <p>No impact paths found for this change event.</p>
+    </div>
+}
+
+@code {
+    private List<ChangeEventInfo> _changeEvents = [];
+    private string _selectedChange = "";
+    private List<BlastRadiusRow> _rows = [];
+    private bool _loading;
+
+    protected override void OnInitialized()
+    {
+        _changeEvents = Graph.GetChangeEvents();
+    }
+
+    private async Task OnChangeSelected(ChangeEventArgs e)
+    {
+        _selectedChange = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(_selectedChange)) { _rows = []; return; }
+        _loading = true;
+        StateHasChanged();
+        await Task.Yield();
+        _rows = Graph.GetBlastRadius(_selectedChange);
+        _loading = false;
+    }
+
+    private static string VerdictBadge(string v) => v switch
+    {
+        "PASS" => "badge-green", "FAIL" => "badge-red", _ => "badge-amber"
+    };
+}

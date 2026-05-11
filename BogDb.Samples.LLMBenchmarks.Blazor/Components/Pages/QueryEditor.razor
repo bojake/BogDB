@@ -1,0 +1,142 @@
+@page "/query"
+@rendermode InteractiveServer
+@inject BenchmarkGraphService Graph
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Query Editor · BogDB LLM Explorer</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Query Editor</h1>
+    <p class="page-subtitle">Execute arbitrary Cypher against the LLM benchmark graph</p>
+</div>
+
+<div class="page-body">
+    <div class="query-input-area">
+        <div class="query-toolbar">
+            <span class="query-toolbar-label">Cypher</span>
+            <button class="btn btn-secondary btn-sm" @onclick="ClearQuery">Clear</button>
+            <button class="btn btn-primary btn-sm" @onclick="RunQuery" disabled="@_running">
+                @if (_running)
+                {
+                    <span class="spinner" style="width:12px;height:12px;border-width:2px;"></span>
+                }
+                else
+                {
+                    <span>▶</span>
+                }
+                Run
+            </button>
+        </div>
+        <textarea class="cypher-input" @bind="_cypher" @bind:event="oninput"
+                  placeholder="MATCH (m:Model)-[:MADE_BY]->(o:Organisation)&#10;RETURN m.name AS model, o.name AS org&#10;ORDER BY m.arena_elo DESC"
+                  rows="7"
+                  @onkeydown="OnKeyDown"></textarea>
+        @if (_result is not null)
+        {
+            <div class="query-meta">
+                @if (_result.IsSuccess)
+                {
+                    <span>@_result.Rows.Count rows</span>
+                    <span class="timing">⚡ @_result.ElapsedMs ms</span>
+                    <span>@_result.Columns.Count columns</span>
+                }
+                else
+                {
+                    <span style="color:var(--red)">✗ Error</span>
+                }
+            </div>
+        }
+    </div>
+
+    @if (_result is not null)
+    {
+        if (!_result.IsSuccess)
+        {
+            <div class="error-box">@_result.Error</div>
+        }
+        else if (_result.Rows.Count == 0)
+        {
+            <div style="color:var(--text-3);font-size:13px;padding:24px 0;">No rows returned.</div>
+        }
+        else
+        {
+            <div class="results-header">
+                <span class="badge badge-purple">@_result.Rows.Count rows</span>
+                <span class="results-count">@_result.Columns.Count columns · @_result.ElapsedMs ms</span>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            @foreach (var col in _result.Columns)
+                            {
+                                <th>@col</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _result.Rows)
+                        {
+                            <tr>
+                                @foreach (var col in _result.Columns)
+                                {
+                                    var val = row.TryGetValue(col, out var v) ? v : null;
+                                    <td>@FormatCell(val)</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private string _cypher = string.Empty;
+    private QueryResponse? _result;
+    private bool _running;
+
+    [Parameter, SupplyParameterFromQuery(Name = "q")]
+    public string? InitialQuery { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrWhiteSpace(InitialQuery))
+            _cypher = InitialQuery;
+    }
+
+    private async Task RunQuery()
+    {
+        if (string.IsNullOrWhiteSpace(_cypher)) return;
+        _running = true;
+        _result = null;
+        await Task.Yield();
+        _result = Graph.Execute(_cypher);
+        _running = false;
+    }
+
+    private void ClearQuery()
+    {
+        _cypher = string.Empty;
+        _result = null;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        // Ctrl+Enter or Cmd+Enter runs query
+        if (e.Key == "Enter" && (e.CtrlKey || e.MetaKey))
+            await RunQuery();
+    }
+
+    private static string FormatCell(object? val)
+    {
+        if (val is null) return "null";
+        if (val is bool b) return b ? "true" : "false";
+        if (val is double d) return d.ToString("G6");
+        return val.ToString() ?? "";
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}

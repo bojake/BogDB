@@ -1,0 +1,538 @@
+using System.Buffers;
+using System.Text;
+using System.Text.Json;
+using BogDb.Mcp.Server.Services;
+
+namespace BogDb.Mcp.Server;
+
+public sealed class McpServerHost
+{
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    private readonly BogDbQueryToolService _queryService = new();
+    private readonly BogDbSchemaToolService _schemaService = new();
+    private readonly HandoffResourceService _handoffResourceService;
+    private readonly OrchestrationQueryToolService _orchestrationQueryService;
+    private readonly OrchestrationAcceptanceToolService _orchestrationAcceptanceService;
+    private readonly OrchestrationAcceptanceIngestToolService _orchestrationAcceptanceIngestService;
+    private readonly OrchestrationAcceptanceVerificationIngestToolService _orchestrationAcceptanceVerificationIngestService;
+
+    public McpServerHost(string? workspaceRoot = null)
+    {
+        _handoffResourceService = new HandoffResourceService(workspaceRoot);
+        _orchestrationQueryService = new OrchestrationQueryToolService(_queryService, workspaceRoot);
+        _orchestrationAcceptanceService = new OrchestrationAcceptanceToolService();
+        _orchestrationAcceptanceIngestService = new OrchestrationAcceptanceIngestToolService();
+        _orchestrationAcceptanceVerificationIngestService = new OrchestrationAcceptanceVerificationIngestToolService();
+    }
+
+    public async Task RunAsync(CancellationToken cancellationToken = default)
+    {
+        using var input = Console.OpenStandardInput();
+        using var output = Console.OpenStandardOutput();
+        await RunAsync(input, output, cancellationToken);
+    }
+
+    public async Task RunAsync(Stream input, Stream output, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var message = await ReadMessageAsync(input, cancellationToken);
+            if (message == null)
+                break;
+
+            using var document = JsonDocument.Parse(message);
+            var root = document.RootElement;
+            if (!root.TryGetProperty("method", out var methodElement))
+                continue;
+
+            var method = methodElement.GetString();
+            if (string.IsNullOrWhiteSpace(method))
+                continue;
+
+            if (!root.TryGetProperty("id", out var idElement))
+            {
+                if (string.Equals(method, "notifications/initialized", StringComparison.Ordinal))
+                    continue;
+                continue;
+            }
+
+            var id = idElement.Clone();
+
+            try
+            {
+                object result = method switch
+                {
+                    "initialize" => CreateInitializeResult(),
+                    "ping" => new { },
+                    "tools/list" => CreateToolsListResult(),
+                    "tools/call" => await HandleToolsCallAsync(root, cancellationToken),
+                    "resources/list" => _handoffResourceService.ListResources(),
+                    "resources/read" => HandleResourcesRead(root),
+                    _ => throw new InvalidOperationException($"Unsupported MCP method '{method}'.")
+                };
+
+                await WriteResponseAsync(output, new
+                {
+                    jsonrpc = "2.0",
+                    id,
+                    result
+                }, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await WriteResponseAsync(output, new
+                {
+                    jsonrpc = "2.0",
+                    id,
+                    error = new
+                    {
+                        code = -32000,
+                        message = ex.Message
+                    }
+                }, cancellationToken);
+            }
+        }
+    }
+
+    private async Task<object> HandleToolsCallAsync(JsonElement root, CancellationToken cancellationToken)
+    {
+        if (!root.TryGetProperty("params", out var @params))
+            throw new InvalidOperationException("tools/call requires params.");
+
+        var name = @params.GetProperty("name").GetString();
+        if (string.IsNullOrWhiteSpace(name))
+            throw new InvalidOperationException("tools/call requires a tool name.");
+
+        var arguments = @params.TryGetProperty("arguments", out var argsElement)
+            ? argsElement
+            : default;
+
+        object toolResult = name switch
+        {
+            "bogdb_query" => await _queryService.ExecuteAsync(arguments, cancellationToken),
+            "bogdb_schema" => _schemaService.GetSchema(arguments),
+            "bogdb_tables" => _schemaService.GetTables(arguments),
+            "bogdb_table_info" => _schemaService.GetTableInfo(arguments),
+            "handoff_query" => _handoffResourceService.QueryHandoffs(arguments),
+            "orchestration_pending_gates" => await _orchestrationQueryService.QueryPendingGatesAsync(arguments, cancellationToken),
+            "orchestration_release_ready_gates" => await _orchestrationQueryService.QueryReleaseReadyGatesAsync(arguments, cancellationToken),
+            "orchestration_blocked_work" => await _orchestrationQueryService.QueryBlockedWorkAsync(arguments, cancellationToken),
+            "orchestration_lane_acceptance_gaps" => await _orchestrationQueryService.QueryLaneAcceptanceGapsAsync(arguments, cancellationToken),
+            "orchestration_acceptance_ingest_status" => await _orchestrationQueryService.QueryAcceptanceIngestStatusAsync(arguments, cancellationToken),
+            "orchestration_acceptance_verification_status" => await _orchestrationQueryService.QueryAcceptanceVerificationStatusAsync(arguments, cancellationToken),
+            "orchestration_acceptance_ingests_awaiting_local_verification" => await _orchestrationQueryService.QueryAcceptanceIngestsAwaitingLocalVerificationAsync(arguments, cancellationToken),
+            "orchestration_record_acceptance" => await _orchestrationAcceptanceService.RecordAcceptanceAsync(arguments, cancellationToken),
+            "orchestration_ingest_acceptance_artifacts" => await _orchestrationAcceptanceIngestService.IngestAsync(arguments, cancellationToken),
+            "orchestration_ingest_acceptance_verification_artifacts" => await _orchestrationAcceptanceVerificationIngestService.IngestAsync(arguments, cancellationToken),
+            _ => throw new InvalidOperationException($"Unknown tool '{name}'.")
+        };
+
+        return new
+        {
+            content = new[]
+            {
+                new
+                {
+                    type = "text",
+                    text = JsonSerializer.Serialize(toolResult, JsonOptions)
+                }
+            },
+            structuredContent = toolResult,
+            isError = false
+        };
+    }
+
+    private object HandleResourcesRead(JsonElement root)
+    {
+        if (!root.TryGetProperty("params", out var @params))
+            throw new InvalidOperationException("resources/read requires params.");
+
+        return _handoffResourceService.ReadResource(@params);
+    }
+
+    private static object CreateInitializeResult()
+    {
+        return new
+        {
+            protocolVersion = "2025-03-26",
+            capabilities = new
+            {
+                tools = new { },
+                resources = new
+                {
+                    subscribe = false,
+                    listChanged = false
+                }
+            },
+            serverInfo = new
+            {
+                name = "bogdb-ng",
+                version = "0.1.0"
+            }
+        };
+    }
+
+    private static object CreateToolsListResult()
+    {
+        return new
+        {
+            tools = new object[]
+            {
+                new
+                {
+                    name = "bogdb_query",
+                    description = "Execute a read-only Cypher query against a BogDB database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            cypher = new { type = "string" },
+                            parameters = new { type = "object" },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath", "cypher" }
+                    }
+                },
+                new
+                {
+                    name = "bogdb_schema",
+                    description = "Return a compact schema summary for a BogDB database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "bogdb_tables",
+                    description = "List node and relationship tables in a BogDB database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "bogdb_table_info",
+                    description = "Return detailed metadata for one table in a BogDB database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            tableName = new { type = "string" }
+                        },
+                        required = new[] { "databasePath", "tableName" }
+                    }
+                },
+                new
+                {
+                    name = "handoff_query",
+                    description = "Query workspace-scoped handoff index entries with optional kind and agent filters.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            handoffKind = new { type = "string" },
+                            createdByAgentUid = new { type = "string" },
+                            targetAgentUid = new { type = "string" },
+                            participantAgentUid = new { type = "string" },
+                            latestForTargetAgentUid = new { type = "string" },
+                            latestBetweenAgentAUid = new { type = "string" },
+                            latestBetweenAgentBUid = new { type = "string" },
+                            latestReadyForTargetAgentUid = new { type = "string" },
+                            latestReadyVerificationForTargetAgentUid = new { type = "string" },
+                            latestReadyVerificationPickupForTargetAgentUid = new { type = "string" },
+                            groupReadyVerificationHandoffsForTargetAgentUid = new { type = "string" },
+                            groupReadyVerificationPickupHandoffsForTargetAgentUid = new { type = "string" },
+                            bestReadyVerificationBatchForTargetAgentUid = new { type = "string" },
+                            bestReadyVerificationWorkForTargetAgentUid = new { type = "string" },
+                            bestReadyVerificationPickupWorkForTargetAgentUid = new { type = "string" },
+                            latestActionableForTargetAgentUid = new { type = "string" },
+                            status = new { type = "string" },
+                            latestOnly = new { type = "boolean" },
+                            limit = new { type = "integer", minimum = 1, maximum = 100 }
+                        }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_pending_gates",
+                    description = "Query ACOP orchestration gates that are still pending acceptance in a BogDB database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            flowId = new { type = "string" },
+                            repoId = new { type = "string" },
+                            stageId = new { type = "string" },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_release_ready_gates",
+                    description = "Query ACOP orchestration gates whose upstream lanes are accepted and ready for owner action.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            flowId = new { type = "string" },
+                            repoId = new { type = "string" },
+                            ownerRole = new { type = "string" },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_blocked_work",
+                    description = "Query work items blocked specifically by orchestration state in a BogDB database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            flowId = new { type = "string" },
+                            repoId = new { type = "string" },
+                            targetAgentUid = new { type = "string" },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_lane_acceptance_gaps",
+                    description = "Query completed orchestration lanes that still need acceptance before downstream release.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            flowId = new { type = "string" },
+                            repoId = new { type = "string" },
+                            stageId = new { type = "string" },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_acceptance_ingest_status",
+                    description = "Query durable acceptance-ingest lifecycle records in a BogDb orchestration database.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            acceptanceId = new { type = "string" },
+                            targetId = new { type = "string" },
+                            targetKind = new { type = "string", @enum = new[] { "lane", "gate", "stage" } },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_acceptance_verification_status",
+                    description = "Return durable acceptance verification lifecycle records from BogDB.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            acceptanceId = new { type = "string" },
+                            targetId = new { type = "string" },
+                            targetKind = new { type = "string" },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_acceptance_ingests_awaiting_local_verification",
+                    description = "Query acceptance ingests in BogDb that do not yet have a local BO verification receipt in the current workspace.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            acceptanceId = new { type = "string" },
+                            targetId = new { type = "string" },
+                            targetKind = new { type = "string", @enum = new[] { "lane", "gate", "stage" } },
+                            rowLimit = new { type = "integer", minimum = 1, maximum = 1000 },
+                            timeoutMs = new { type = "integer", minimum = 1 }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_ingest_acceptance_verification_artifacts",
+                    description = "Ingest BO-style local acceptance verification artifacts or a verification index into durable BogDb verification records.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            artifactPath = new { type = "string" },
+                            indexPath = new { type = "string" }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_record_acceptance",
+                    description = "Persist a durable orchestration acceptance record for a lane, gate, or stage.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            acceptanceId = new { type = "string" },
+                            targetId = new { type = "string" },
+                            targetKind = new { type = "string", @enum = new[] { "lane", "gate", "stage" } },
+                            acceptanceStatus = new { type = "string", @enum = new[] { "reviewed", "accepted", "released", "rejected" } },
+                            recordedAtUtc = new { type = "string" },
+                            recordedByAgentUid = new { type = "string" },
+                            sourceWorkItemId = new { type = "string" },
+                            notes = new { type = "string" }
+                        },
+                        required = new[] { "databasePath", "acceptanceId", "targetId", "targetKind", "acceptanceStatus" }
+                    }
+                },
+                new
+                {
+                    name = "orchestration_ingest_acceptance_artifacts",
+                    description = "Ingest BO-style acceptance artifacts or an acceptance index into durable BogDb orchestration state.",
+                    inputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            databasePath = new { type = "string" },
+                            artifactPath = new { type = "string" },
+                            indexPath = new { type = "string" }
+                        },
+                        required = new[] { "databasePath" }
+                    }
+                }
+            }
+        };
+    }
+
+    public static async Task<string?> ReadMessageAsync(Stream input, CancellationToken cancellationToken)
+    {
+        var headerBytes = new List<byte>();
+        var headerTerminator = Encoding.ASCII.GetBytes("\r\n\r\n");
+
+        while (true)
+        {
+            var buffer = ArrayPool<byte>.Shared.Rent(1);
+            try
+            {
+                var bytesRead = await input.ReadAsync(buffer.AsMemory(0, 1), cancellationToken);
+                if (bytesRead == 0)
+                    return headerBytes.Count == 0 ? null : throw new EndOfStreamException("Unexpected EOF while reading MCP headers.");
+
+                headerBytes.Add(buffer[0]);
+                if (headerBytes.Count >= 4 &&
+                    headerBytes[^4] == headerTerminator[0] &&
+                    headerBytes[^3] == headerTerminator[1] &&
+                    headerBytes[^2] == headerTerminator[2] &&
+                    headerBytes[^1] == headerTerminator[3])
+                {
+                    break;
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
+        var headers = Encoding.ASCII.GetString(headerBytes.ToArray());
+        var contentLength = ParseContentLength(headers);
+        var payload = new byte[contentLength];
+        var offset = 0;
+        while (offset < contentLength)
+        {
+            var read = await input.ReadAsync(payload.AsMemory(offset, contentLength - offset), cancellationToken);
+            if (read == 0)
+                throw new EndOfStreamException("Unexpected EOF while reading MCP payload.");
+            offset += read;
+        }
+
+        return Encoding.UTF8.GetString(payload);
+    }
+
+    private static int ParseContentLength(string headers)
+    {
+        foreach (var line in headers.Split("\r\n", StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var value = line["Content-Length:".Length..].Trim();
+            if (int.TryParse(value, out var contentLength) && contentLength >= 0)
+                return contentLength;
+        }
+
+        throw new InvalidOperationException("Missing Content-Length header.");
+    }
+
+    public static async Task WriteResponseAsync(Stream output, object payload, CancellationToken cancellationToken)
+    {
+        var body = JsonSerializer.Serialize(payload, JsonOptions);
+        var bodyBytes = Encoding.UTF8.GetBytes(body);
+        var headerBytes = Encoding.ASCII.GetBytes($"Content-Length: {bodyBytes.Length}\r\n\r\n");
+
+        await output.WriteAsync(headerBytes, cancellationToken);
+        await output.WriteAsync(bodyBytes, cancellationToken);
+        await output.FlushAsync(cancellationToken);
+    }
+}

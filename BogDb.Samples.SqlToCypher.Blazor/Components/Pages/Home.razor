@@ -1,0 +1,113 @@
+@page "/"
+@rendermode InteractiveServer
+@inject SqlToCypherGraphService Svc
+
+<PageTitle>SQL → Cypher · BogDB</PageTitle>
+
+<div class="page-header">
+    <h1>🔄 SQL → Cypher Learning Lab</h1>
+    <p>An interactive guide for SQL developers learning graph query with BogDB. Explore the schema, then dive into 20 side-by-side lessons.</p>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-label">Node Tables</div>
+        <div class="stat-value">@_schema?.NodeTables.Count</div>
+        <div class="stat-sub">Customer, Employee, Movie&hellip;</div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-label">Relationship Types</div>
+        <div class="stat-value">@_schema?.RelTables.Count</div>
+        <div class="stat-sub">PLACED, MANAGES, ACTED_IN&hellip;</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-label">Lessons</div>
+        <div class="stat-value">20</div>
+        <div class="stat-sub">SELECT → MATCH to algorithms</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Graph Domains</div>
+        <div class="stat-value">3</div>
+        <div class="stat-sub">E-commerce · Employees · Movies</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+    <div class="card">
+        <div class="card-title">📦 Node Tables</div>
+        <table class="data-table">
+            <thead><tr><th>Label</th><th>Properties</th><th>Domain</th></tr></thead>
+            <tbody>
+                @if (_schema is not null)
+                {
+                    foreach (var nt in _schema.NodeTables)
+                    {
+                        <tr>
+                            <td><span class="node-badge">@nt.Name</span></td>
+                            <td class="prop-list">@string.Join(", ", nt.Properties)</td>
+                            <td class="domain-pill">@Domain(nt.Name)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🔗 Relationship Types</div>
+        <table class="data-table">
+            <thead><tr><th>Type</th><th>From → To</th><th>Props</th></tr></thead>
+            <tbody>
+                @if (_schema is not null)
+                {
+                    foreach (var rt in _schema.RelTables)
+                    {
+                        <tr>
+                            <td><span class="rel-badge">:@rt.Name</span></td>
+                            <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary)">@rt.From → @rt.To</td>
+                            <td style="font-size:11px;color:var(--text-muted)">@(rt.Properties.Count > 0 ? string.Join(", ", rt.Properties) : "—")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="background:linear-gradient(135deg,rgba(245,158,11,.08),transparent)">
+    <div class="card-title">🚀 Getting Started</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <a href="/lessons" class="start-card">
+            <div class="start-icon">📖</div>
+            <div class="start-label">SQL → Cypher Lessons</div>
+            <div class="start-desc">20 side-by-side comparisons from basic SELECT to graph algorithms. Modify and run each example live.</div>
+        </a>
+        <a href="/querylab" class="start-card">
+            <div class="start-icon">⌨️</div>
+            <div class="start-label">Query Lab</div>
+            <div class="start-desc">Free-form Cypher editor with quick-start queries across all three domains. Experiment freely.</div>
+        </a>
+        <a href="/concepts" class="start-card">
+            <div class="start-icon">🗺️</div>
+            <div class="start-label">Concept Guide</div>
+            <div class="start-desc">Reference cards explaining the core mental model shifts: tables→nodes, FKs→relationships, CTEs→paths.</div>
+        </a>
+    </div>
+</div>
+
+@code {
+    private SchemaInfo? _schema;
+
+    protected override void OnInitialized()
+    {
+        _schema = Svc.GetSchemaInfo();
+    }
+
+    private static string Domain(string label) => label switch
+    {
+        "Customer" or "Product" or "Order" or "Category" => "E-commerce",
+        "Employee" or "Department" or "Project"          => "Employees",
+        "Movie" or "Person" or "Genre"                   => "Movies",
+        _                                                => "—",
+    };
+}

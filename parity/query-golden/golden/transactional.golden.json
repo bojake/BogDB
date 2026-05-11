@@ -1,0 +1,360 @@
+﻿{
+  "corpus": "corpus-transactional.cypher",
+  "blessedAt": "2026-04-04T11:48:44.2019890Z",
+  "queries": [
+    {
+      "name": "begin_insert_rollback",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "insert_bob_in_tx",
+      "cypher": "CREATE (:Person {id:2, name:\u0027Bob\u0027})",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "visible_inside_insert_tx",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ],
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "rollback_insert",
+      "cypher": "ROLLBACK",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "hidden_after_insert_rollback",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ]
+      ]
+    },
+    {
+      "name": "begin_insert_commit",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "insert_bob_commit_tx",
+      "cypher": "CREATE (:Person {id:2, name:\u0027Bob\u0027})",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "commit_insert",
+      "cypher": "COMMIT",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "visible_after_commit",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ],
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "begin_delete_rollback",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "delete_bob_in_tx",
+      "cypher": "MATCH (p:Person) WHERE p.id = 2 DELETE p",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "hidden_inside_delete_tx",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ]
+      ]
+    },
+    {
+      "name": "rollback_delete",
+      "cypher": "ROLLBACK",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "restored_after_delete_rollback",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ],
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "begin_update_rollback",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "update_bob_name_in_tx",
+      "cypher": "MATCH (p:Person) WHERE p.id = 2 SET p.name = \u0027Bobby\u0027 RETURN p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name"
+      ],
+      "rows": [
+        [
+          "Bobby"
+        ]
+      ]
+    },
+    {
+      "name": "visible_updated_name_inside_tx",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ],
+        [
+          "2",
+          "Bobby"
+        ]
+      ]
+    },
+    {
+      "name": "rollback_update",
+      "cypher": "ROLLBACK",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "restored_name_after_update_rollback",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "Alice"
+        ],
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "begin_rel_insert_rollback",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "create_knows_in_tx",
+      "cypher": "MATCH (a:Person {id:1}), (b:Person {id:2}) CREATE (a)-[:KNOWS {since:2026}]-\u003E(b)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "visible_rel_inside_tx",
+      "cypher": "MATCH (a:Person)-[r:KNOWS]-\u003E(b:Person) RETURN a.id, b.id, r.since ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "2",
+          "2026"
+        ]
+      ]
+    },
+    {
+      "name": "rollback_rel_insert",
+      "cypher": "ROLLBACK",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "hidden_rel_after_rollback",
+      "cypher": "MATCH (a:Person)-[r:KNOWS]-\u003E(b:Person) RETURN a.id, b.id, r.since ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "r.since"
+      ],
+      "rows": []
+    },
+    {
+      "name": "begin_rel_insert_commit",
+      "cypher": "BEGIN TRANSACTION",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "create_knows_commit_tx",
+      "cypher": "MATCH (a:Person {id:1}), (b:Person {id:2}) CREATE (a)-[:KNOWS {since:2026}]-\u003E(b)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "id",
+        "name"
+      ],
+      "rows": [
+        [
+          "2",
+          "Bob"
+        ]
+      ]
+    },
+    {
+      "name": "commit_rel_insert",
+      "cypher": "COMMIT",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "visible_rel_after_commit",
+      "cypher": "MATCH (a:Person)-[r:KNOWS]-\u003E(b:Person) RETURN a.id, b.id, r.since ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "2",
+          "2026"
+        ]
+      ]
+    }
+  ]
+}

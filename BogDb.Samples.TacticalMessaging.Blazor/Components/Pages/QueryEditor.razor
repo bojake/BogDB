@@ -1,0 +1,104 @@
+@page "/query"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">🔎 Query Editor</h1>
+    <p class="page-sub">Execute Cypher queries against the tactical messaging compliance graph</p>
+</div>
+
+<div class="editor-area">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Showcase Queries</h2>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            @foreach (var q in TacticalMessagingGraphService.ShowcaseQueries)
+            {
+                <button class="btn" @onclick="() => LoadQuery(q)">
+                    <span class="badge badge-@TagBadge(q.Tag)" style="margin-right:0.3rem;">@q.Tag</span>@q.Title
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Cypher</h2>
+            <button class="btn btn-green" @onclick="RunQuery" disabled="@_loading">▶ Run</button>
+        </div>
+        <textarea class="form-input" @bind="_cypher" rows="6"></textarea>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="loading">Executing query…</div>
+    }
+    else if (_response is not null)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Results</h2>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                    @if (_response.IsSuccess)
+                    {
+                        <span class="badge badge-green">@_response.Rows.Count rows</span>
+                        <span class="badge badge-cyan">@_response.ElapsedMs ms</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-red">Error</span>
+                    }
+                </div>
+            </div>
+            @if (!_response.IsSuccess)
+            {
+                <pre style="color:var(--red);">@_response.Error</pre>
+            }
+            else if (_response.Rows.Count == 0)
+            {
+                <p class="text-muted" style="font-size:0.82rem;">Query returned 0 rows.</p>
+            }
+            else
+            {
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>@foreach (var col in _response.Columns) { <th>@col</th> }</tr></thead>
+                        <tbody>
+                        @foreach (var row in _response.Rows.Take(200))
+                        {
+                            <tr>@foreach (var col in _response.Columns) { <td class="mono" style="font-size:0.75rem;">@(row.GetValueOrDefault(col)?.ToString() ?? "")</td> }</tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+                @if (_response.Rows.Count > 200)
+                {
+                    <p class="text-muted" style="margin-top:0.5rem;font-size:0.78rem;">Showing 200 of @_response.Rows.Count rows</p>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string _cypher = "";
+    private QueryResponse? _response;
+    private bool _loading;
+
+    private void LoadQuery(ShowcaseQuery q) { _cypher = q.Cypher; _response = null; }
+
+    private async Task RunQuery()
+    {
+        if (string.IsNullOrWhiteSpace(_cypher)) return;
+        _loading = true; StateHasChanged(); await Task.Yield();
+        _response = Graph.Execute(_cypher);
+        _loading = false;
+    }
+
+    private static string TagBadge(string tag) => tag switch
+    {
+        "impact" => "red", "cert" => "green", "platform" => "blue",
+        "interop" => "teal", "inventory" => "violet", "schema" => "cyan",
+        "capability" => "amber", "gaps" => "orange", _ => "blue"
+    };
+}

@@ -1,0 +1,34 @@
+﻿{
+  "corpus": "corpus-explain.cypher",
+  "blessedAt": "2026-04-08T02:37:01.7923100Z",
+  "queries": [
+    {
+      "name": "explain_match",
+      "cypher": "EXPLAIN MATCH (p:Person) RETURN p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "explain result"
+      ],
+      "rows": [
+        [
+          "PROJECTION\n  SCAN_NODE_PROPERTY"
+        ]
+      ]
+    },
+    {
+      "name": "explain_logical_match",
+      "cypher": "EXPLAIN LOGICAL MATCH (p:Person) RETURN p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "explain result"
+      ],
+      "rows": [
+        [
+          "PROJECTION PROJECTION (1 expressions)\n  SCAN_NODE SCAN p FROM Person"
+        ]
+      ]
+    }
+  ]
+}

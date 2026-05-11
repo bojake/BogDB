@@ -1,0 +1,299 @@
+﻿{
+  "corpus": "corpus-merge.cypher",
+  "blessedAt": "2026-03-28T00:07:24.1047070Z",
+  "queries": [
+    {
+      "name": "merge_node_create",
+      "cypher": "MERGE (p:Person {id:1}) ON CREATE SET p.name = \u0027Alice\u0027, p.visits = 1 ON MATCH SET p.visits = 99 RETURN p.name, p.visits",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "p.visits"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "merge_node_match",
+      "cypher": "MERGE (p:Person {id:1}) ON CREATE SET p.name = \u0027Other\u0027, p.visits = 2 ON MATCH SET p.visits = 3 RETURN p.name, p.visits",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "p.visits"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "merge_node_duplicate_pk_error",
+      "cypher": "MERGE (:Person {id:1, name:\u0027Bob\u0027}) RETURN 1",
+      "isSuccess": false,
+      "errorMessage": "Found duplicated primary key value 1, which violates the uniqueness constraint of the primary key column.",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "merge_node_null_create",
+      "cypher": "MERGE (:Person {id:2, nickname:NULL, age:NULL, active:false}) RETURN 1",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "1"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "merge_node_null_verify",
+      "cypher": "MATCH (p:Person {id:2}) RETURN p.nickname IS NULL, p.age IS NULL, p.active",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.nickname  IS NULL",
+        "p.age  IS NULL",
+        "p.active"
+      ],
+      "rows": [
+        [
+          "True",
+          "True",
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_create",
+      "cypher": "MATCH (p:Person {id:1}), (c:Company {id:10}) MERGE (p)-[r:WORKS_AT {score:1, active:true}]-\u003E(c) ON CREATE SET r.note = \u0027created\u0027 ON MATCH SET r.note = \u0027matched\u0027 RETURN r.score, r.active, r.note",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score",
+        "r.active",
+        "r.note"
+      ],
+      "rows": [
+        [
+          "1",
+          "True",
+          "created"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_match",
+      "cypher": "MATCH (p:Person {id:1}), (c:Company {id:10}) MERGE (p)-[r:WORKS_AT {score:1, active:true}]-\u003E(c) ON CREATE SET r.note = \u0027created\u0027 ON MATCH SET r.note = \u0027matched\u0027 RETURN r.score, r.active, r.note",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score",
+        "r.active",
+        "r.note"
+      ],
+      "rows": [
+        [
+          "1",
+          "True",
+          "matched"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_parallel_edge_create",
+      "cypher": "MATCH (p:Person {id:1}), (c:Company {id:10}) MERGE (p)-[r:WORKS_AT {score:2, active:true}]-\u003E(c) RETURN r.score",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_parallel_edge_verify",
+      "cypher": "MATCH (:Person {id:1})-[r:WORKS_AT]-\u003E(:Company {id:10}) RETURN r.score ORDER BY r.score",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score"
+      ],
+      "rows": [
+        [
+          "1"
+        ],
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_parallel_edge_set_after_match",
+      "cypher": "MATCH (:Person {id:1})-[r:WORKS_AT]-\u003E(:Company {id:10}) WHERE r.score = 2 SET r.note = \u0027parallel\u0027 RETURN r.score, r.note",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score",
+        "r.note"
+      ],
+      "rows": [
+        [
+          "2",
+          "parallel"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_parallel_edge_set_verify",
+      "cypher": "MATCH (:Person {id:1})-[r:WORKS_AT]-\u003E(:Company {id:10}) RETURN r.score, coalesce(r.note, \u0027\u003Cnull\u003E\u0027) ORDER BY r.score",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score",
+        "coalesce(r.note, \u0027\u003Cnull\u003E\u0027)"
+      ],
+      "rows": [
+        [
+          "1",
+          "matched"
+        ],
+        [
+          "2",
+          "parallel"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_parallel_edge_delete_after_match",
+      "cypher": "MATCH (:Person {id:1})-[r:WORKS_AT]-\u003E(:Company {id:10}) WHERE r.score = 2 DELETE r",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [],
+      "rows": [
+        []
+      ]
+    },
+    {
+      "name": "merge_rel_parallel_edge_delete_verify",
+      "cypher": "MATCH (:Person {id:1})-[r:WORKS_AT]-\u003E(:Company {id:10}) RETURN r.score, coalesce(r.note, \u0027\u003Cnull\u003E\u0027) ORDER BY r.score",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score",
+        "coalesce(r.note, \u0027\u003Cnull\u003E\u0027)"
+      ],
+      "rows": [
+        [
+          "1",
+          "matched"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_null_create",
+      "cypher": "MATCH (p:Person {id:2}), (c:Company {id:10}) MERGE (p)-[r:WORKS_AT {score:NULL, active:false}]-\u003E(c) RETURN r.score IS NULL, r.active",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score  IS NULL",
+        "r.active"
+      ],
+      "rows": [
+        [
+          "True",
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "merge_rel_null_verify",
+      "cypher": "MATCH (:Person {id:2})-[r:WORKS_AT]-\u003E(:Company {id:10}) RETURN r.score IS NULL, r.active",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "r.score  IS NULL",
+        "r.active"
+      ],
+      "rows": [
+        [
+          "True",
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "merge_graph_create",
+      "cypher": "MERGE (p:Person {id:3})-[w:WORKS_AT {score:7, active:true}]-\u003E(c:Company {id:11})-[l:LOCATED_IN {hq:true}]-\u003E(city:City {id:100}) ON CREATE SET p.name = \u0027Cara\u0027, c.name = \u0027Beta\u0027, city.name = \u0027Seattle\u0027, w.note = \u0027created-work\u0027, l.note = \u0027created-city\u0027 ON MATCH SET w.note = \u0027matched-work\u0027, l.note = \u0027matched-city\u0027 RETURN p.name, c.name, city.name, w.note, l.note",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "c.name",
+        "city.name",
+        "w.note",
+        "l.note"
+      ],
+      "rows": [
+        [
+          "Cara",
+          "Beta",
+          "Seattle",
+          "created-work",
+          "created-city"
+        ]
+      ]
+    },
+    {
+      "name": "merge_graph_match",
+      "cypher": "MERGE (p:Person {id:3})-[w:WORKS_AT {score:7, active:true}]-\u003E(c:Company {id:11})-[l:LOCATED_IN {hq:true}]-\u003E(city:City {id:100}) ON CREATE SET p.name = \u0027Other\u0027, c.name = \u0027OtherCo\u0027, city.name = \u0027Elsewhere\u0027, w.note = \u0027created-work\u0027, l.note = \u0027created-city\u0027 ON MATCH SET w.note = \u0027matched-work\u0027, l.note = \u0027matched-city\u0027 RETURN p.name, c.name, city.name, w.note, l.note",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "c.name",
+        "city.name",
+        "w.note",
+        "l.note"
+      ],
+      "rows": [
+        [
+          "Cara",
+          "Beta",
+          "Seattle",
+          "matched-work",
+          "matched-city"
+        ]
+      ]
+    },
+    {
+      "name": "merge_disconnected_create",
+      "cypher": "MERGE (p:Person {id:4})-[w:WORKS_AT {score:8, active:true}]-\u003E(c:Company {id:12}), (city:City {id:101}) ON CREATE SET p.name = \u0027Dana\u0027, c.name = \u0027Delta\u0027, city.name = \u0027Portland\u0027, city.tag = \u0027created\u0027, w.note = \u0027created-work\u0027 ON MATCH SET city.tag = \u0027matched\u0027, w.note = \u0027matched-work\u0027 RETURN p.name, c.name, city.name, city.tag, w.note",
+      "isSuccess": false,
+      "errorMessage": "Property \u0027tag\u0027 not found on node \u0027city\u0027 (tables: City).",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "merge_disconnected_match",
+      "cypher": "MERGE (p:Person {id:4})-[w:WORKS_AT {score:8, active:true}]-\u003E(c:Company {id:12}), (city:City {id:101}) ON CREATE SET p.name = \u0027Other\u0027, c.name = \u0027OtherCo\u0027, city.name = \u0027Elsewhere\u0027, city.tag = \u0027created\u0027, w.note = \u0027created-work\u0027 ON MATCH SET city.tag = \u0027matched\u0027, w.note = \u0027matched-work\u0027 RETURN p.name, c.name, city.name, city.tag, w.note",
+      "isSuccess": false,
+      "errorMessage": "Property \u0027tag\u0027 not found on node \u0027city\u0027 (tables: City).",
+      "columnNames": [],
+      "rows": []
+    }
+  ]
+}

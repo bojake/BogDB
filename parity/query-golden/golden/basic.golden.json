@@ -1,0 +1,167 @@
+﻿{
+  "corpus": "corpus-basic.cypher",
+  "blessedAt": "2026-04-04T23:49:24.6823660Z",
+  "queries": [
+    {
+      "name": "node_scan_all",
+      "cypher": "MATCH (p:Person) RETURN p.id, p.age, p.name ORDER BY p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.id",
+        "p.age",
+        "p.name"
+      ],
+      "rows": [
+        [
+          "1",
+          "25",
+          "Alice"
+        ],
+        [
+          "2",
+          "40",
+          "Bob"
+        ],
+        [
+          "3",
+          "55",
+          "Carol"
+        ],
+        [
+          "4",
+          "30",
+          "Dave"
+        ]
+      ]
+    },
+    {
+      "name": "node_count",
+      "cypher": "MATCH (p:Person) RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "one_hop_all_rels",
+      "cypher": "MATCH (a:Person)-[r:KNOWS]-\u003E(b:Person) RETURN a.id, b.id, r.since ORDER BY a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "1",
+          "2",
+          "2020"
+        ],
+        [
+          "1",
+          "4",
+          "2022"
+        ],
+        [
+          "2",
+          "3",
+          "2021"
+        ]
+      ]
+    },
+    {
+      "name": "one_hop_property_filter",
+      "cypher": "MATCH (a:Person)-[r:KNOWS]-\u003E(b:Person) WHERE r.since \u003E 2020 RETURN a.name, b.name, r.since ORDER BY r.since, a.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.name",
+        "b.name",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Dave",
+          "2022"
+        ],
+        [
+          "Bob",
+          "Carol",
+          "2021"
+        ]
+      ]
+    },
+    {
+      "name": "filter_age_gt_30",
+      "cypher": "MATCH (p:Person) WHERE p.age \u003E 30 RETURN p.name ORDER BY p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name"
+      ],
+      "rows": [
+        [
+          "Bob"
+        ],
+        [
+          "Carol"
+        ]
+      ]
+    },
+    {
+      "name": "filter_name_starts_with_a",
+      "cypher": "MATCH (p:Person) WHERE p.name STARTS WITH \u0027A\u0027 RETURN p.name ORDER BY p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name"
+      ],
+      "rows": [
+        [
+          "Alice"
+        ]
+      ]
+    },
+    {
+      "name": "rel_count",
+      "cypher": "MATCH ()-[:KNOWS]-\u003E() RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "two_hop",
+      "cypher": "MATCH (a:Person)-[:KNOWS]-\u003E(b:Person)-[:KNOWS]-\u003E(c:Person) RETURN a.id, b.id, c.id ORDER BY a.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id",
+        "c.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "2",
+          "3"
+        ]
+      ]
+    }
+  ]
+}

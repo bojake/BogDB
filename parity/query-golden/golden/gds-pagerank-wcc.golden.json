@@ -1,0 +1,156 @@
+﻿{
+  "corpus": "corpus-gds-pagerank-wcc.cypher",
+  "blessedAt": "2026-03-27T23:28:40.8451070Z",
+  "queries": [
+    {
+      "name": "pagerank_yields_rows",
+      "cypher": "CALL pagerank() YIELD node, rank RETURN COUNT(*) AS row_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "row_count"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "pagerank_all_positive",
+      "cypher": "CALL pagerank() YIELD node, rank RETURN MIN(rank) \u003E 0 AS all_positive",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "all_positive"
+      ],
+      "rows": []
+    },
+    {
+      "name": "pagerank_sums_approx_one",
+      "cypher": "CALL pagerank() YIELD node, rank RETURN ROUND(SUM(rank) * 10) / 10 AS approx_sum",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "approx_sum"
+      ],
+      "rows": []
+    },
+    {
+      "name": "pagerank_alias",
+      "cypher": "CALL pagerank() YIELD node RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "pagerank_scalar_after_call",
+      "cypher": "CALL pagerank() YIELD * RETURN COUNT(*) AS primed",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 22: no viable alternative at input \u0027CALL pagerank() YIELD *\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "pagerank_score_non_negative",
+      "cypher": "CALL pagerank() YIELD node, rank RETURN MIN(rank) \u003E= 0 AS ok",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ok"
+      ],
+      "rows": []
+    },
+    {
+      "name": "pagerank_distinct_nodes",
+      "cypher": "CALL pagerank() YIELD node RETURN COUNT(DISTINCT node) AS uniq_nodes",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "uniq_nodes"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "wcc_yields_rows",
+      "cypher": "CALL wcc() YIELD node, component_id RETURN COUNT(*) AS row_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "row_count"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "wcc_component_ids_non_negative",
+      "cypher": "CALL wcc() YIELD node, component_id RETURN MIN(component_id) \u003E= 0 AS ok",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ok"
+      ],
+      "rows": []
+    },
+    {
+      "name": "wcc_alias_weakly_connected",
+      "cypher": "CALL weakly_connected_components() YIELD node, component_id RETURN COUNT(*) AS cnt",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "wcc_at_least_two_components",
+      "cypher": "CALL wcc() YIELD node, component_id RETURN COUNT(DISTINCT component_id) \u003E= 2 AS multi_component",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "multi_component"
+      ],
+      "rows": []
+    },
+    {
+      "name": "wcc_scalar_after_call",
+      "cypher": "CALL wcc() YIELD * RETURN COUNT(*) AS primed",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 17: no viable alternative at input \u0027CALL wcc() YIELD *\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "wcc_distinct_nodes",
+      "cypher": "CALL wcc() YIELD node RETURN COUNT(DISTINCT node) AS uniq_nodes",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "uniq_nodes"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    }
+  ]
+}

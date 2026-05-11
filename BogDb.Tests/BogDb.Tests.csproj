@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\BogDb.Core\BogDb.Core.csproj" />
+    <ProjectReference Include="..\BogDb.Tests.ProcessHost\BogDb.Tests.ProcessHost.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\BogDb.Extensions.Demo\BogDb.Extensions.Demo.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.Json\BogDb.Extensions.Json.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.DuckDB\BogDb.Extensions.DuckDB.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.Vector\BogDb.Extensions.Vector.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.LLM\BogDb.Extensions.LLM.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.Postgres\BogDb.Extensions.Postgres.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.SQLite\BogDb.Extensions.SQLite.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.HttpFS\BogDb.Extensions.HttpFS.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.FTS\BogDb.Extensions.FTS.csproj" />
+    <ProjectReference Include="..\BogDb.Extensions.Algo\BogDb.Extensions.Algo.csproj" />
+    <ProjectReference Include="..\BogDb.Samples.SqlToCypher.Blazor\BogDb.Samples.SqlToCypher.Blazor.csproj" />
+    <ProjectReference Include="..\BogDb.Samples.TacticalMessaging.Blazor\BogDb.Samples.TacticalMessaging.Blazor.csproj" />
+    <ProjectReference Include="..\BogDb.Mcp.Server\BogDb.Mcp.Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.4.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  <AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>
+
+</Project>

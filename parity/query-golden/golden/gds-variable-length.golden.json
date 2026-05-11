@@ -1,0 +1,176 @@
+﻿{
+  "corpus": "corpus-gds-variable-length.cypher",
+  "blessedAt": "2026-03-27T23:35:36.3322290Z",
+  "queries": [
+    {
+      "name": "vlp_hop1_has_rows",
+      "cypher": "CALL variable_length_path(maxHops := 1) YIELD source, target, length, path RETURN COUNT(*) \u003E 0 AS has_rows",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "has_rows"
+      ],
+      "rows": []
+    },
+    {
+      "name": "vlp_hop1_all_length_one",
+      "cypher": "CALL variable_length_path(maxHops := 1) YIELD source, target, length, path RETURN MAX(length) = 1 AS exact",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "exact"
+      ],
+      "rows": []
+    },
+    {
+      "name": "vlp_hop2_max_bound",
+      "cypher": "CALL variable_length_path(maxHops := 2) YIELD source, target, length, path RETURN MAX(length) \u003C= 2 AS bounded",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "bounded"
+      ],
+      "rows": []
+    },
+    {
+      "name": "vlp_hop2_more_paths_than_hop1",
+      "cypher": "CALL variable_length_path(maxHops := 2) YIELD source, target, length RETURN COUNT(*) AS cnt_2",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt_2"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "vlp_hop1_count_for_reference",
+      "cypher": "CALL variable_length_path(maxHops := 1) YIELD source, target, length RETURN COUNT(*) AS cnt_1",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt_1"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "vlp_path_column_populated",
+      "cypher": "CALL variable_length_path(maxHops := 1) YIELD source, target, length, path RETURN MIN(LENGTH(path)) \u003E 0 AS path_non_empty",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "path_non_empty"
+      ],
+      "rows": []
+    },
+    {
+      "name": "vlp_source_target_non_equal",
+      "cypher": "CALL variable_length_path(maxHops := 2) YIELD source, target, length, path RETURN COUNT(*) = SUM(CASE WHEN source \u003C\u003E target THEN 1 ELSE 0 END) AS no_self_paths",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "no_self_paths"
+      ],
+      "rows": []
+    },
+    {
+      "name": "k_hop_2_more_than_1",
+      "cypher": "CALL k_hop(maxHops := 2) YIELD node, source, hops RETURN COUNT(*) AS cnt_2",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt_2"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "k_hop_1_for_reference",
+      "cypher": "CALL k_hop(maxHops := 1) YIELD node, source, hops RETURN COUNT(*) AS cnt_1",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cnt_1"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "k_hop_hops_always_positive",
+      "cypher": "CALL k_hop(maxHops := 3) YIELD node, source, hops RETURN MIN(hops) \u003E= 1 AS positive",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "positive"
+      ],
+      "rows": []
+    },
+    {
+      "name": "k_hop_max_hops_3_bound",
+      "cypher": "CALL k_hop(maxHops := 3) YIELD node, source, hops RETURN MAX(hops) \u003C= 3 AS bounded",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "bounded"
+      ],
+      "rows": []
+    },
+    {
+      "name": "delta_stepping_yields_rows",
+      "cypher": "CALL sssp_delta() YIELD node, distance RETURN COUNT(*) AS row_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "row_count"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "delta_stepping_alias",
+      "cypher": "CALL delta_stepping() YIELD node, distance RETURN COUNT(*) AS row_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "row_count"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "delta_stepping_non_negative_distances",
+      "cypher": "CALL sssp_delta() YIELD node, distance WHERE distance IS NOT NULL RETURN MIN(distance) \u003E= 0 AS ok",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 39: no viable alternative at input \u0027CALL sssp_delta() YIELD node, distance WHERE\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "delta_stepping_same_count_as_sssp",
+      "cypher": "CALL sssp_delta() YIELD node, distance WHERE distance IS NOT NULL RETURN COUNT(*) AS delta_reachable",
+      "isSuccess": false,
+      "errorMessage": "Syntax error at line 1, column 39: no viable alternative at input \u0027CALL sssp_delta() YIELD node, distance WHERE\u0027",
+      "columnNames": [],
+      "rows": []
+    }
+  ]
+}

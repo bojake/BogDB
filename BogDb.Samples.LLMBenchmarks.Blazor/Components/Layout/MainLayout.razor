@@ -1,0 +1,39 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-logo" href="/">
+                <div class="sidebar-logo-icon">⬡</div>
+                <div>
+                    <div class="sidebar-logo-title">BogDB</div>
+                    <div class="sidebar-logo-sub">LLM Explorer</div>
+                </div>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Navigate</div>
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <span class="nav-link-icon">⬡</span>Dashboard
+            </NavLink>
+            <NavLink class="nav-link" href="/query">
+                <span class="nav-link-icon">⌨</span>Query Editor
+            </NavLink>
+            <NavLink class="nav-link" href="/library">
+                <span class="nav-link-icon">📚</span>Query Library
+            </NavLink>
+            <NavLink class="nav-link" href="/models">
+                <span class="nav-link-icon">🤖</span>Model Explorer
+            </NavLink>
+        </nav>
+
+        <div class="sidebar-footer">
+            Powered by BogDB · .NET 9
+        </div>
+    </aside>
+
+    <main class="main-content">
+        @Body
+    </main>
+</div>

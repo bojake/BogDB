@@ -1,0 +1,482 @@
+﻿{
+  "corpus": "corpus-array-vector-functions.cypher",
+  "blessedAt": "2026-03-27T13:18:42.1780620Z",
+  "queries": [
+    {
+      "name": "array_value_ints",
+      "cypher": "RETURN array_value(1, 2, 3, 4) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[1,2,3,4]"
+        ]
+      ]
+    },
+    {
+      "name": "array_value_floats",
+      "cypher": "RETURN array_value(1.5, 2.5, 3.5) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[1.5,2.5,3.5]"
+        ]
+      ]
+    },
+    {
+      "name": "array_value_empty",
+      "cypher": "RETURN array_value() AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[]"
+        ]
+      ]
+    },
+    {
+      "name": "array_extract_first",
+      "cypher": "RETURN array_extract(array_value(10, 20, 30), 1) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "array_extract_last",
+      "cypher": "RETURN array_extract(array_value(10, 20, 30), 3) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "30"
+        ]
+      ]
+    },
+    {
+      "name": "array_element_alias",
+      "cypher": "RETURN array_element(array_value(100, 200, 300), 2) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "200"
+        ]
+      ]
+    },
+    {
+      "name": "array_contains_true",
+      "cypher": "RETURN array_contains(array_value(1, 2, 3, 4), 3) AS found",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "found"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "array_contains_false",
+      "cypher": "RETURN array_contains(array_value(1, 2, 3, 4), 9) AS found",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "found"
+      ],
+      "rows": [
+        [
+          "False"
+        ]
+      ]
+    },
+    {
+      "name": "array_has_alias",
+      "cypher": "RETURN array_has(array_value(\u0027a\u0027, \u0027b\u0027, \u0027c\u0027), \u0027b\u0027) AS found",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "found"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "array_length",
+      "cypher": "RETURN array_length(array_value(5, 10, 15, 20)) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "array_min",
+      "cypher": "RETURN array_min(array_value(7.0, 2.0, 9.0, 1.0)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "array_max",
+      "cypher": "RETURN array_max(array_value(7.0, 2.0, 9.0, 1.0)) AS v",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "v"
+      ],
+      "rows": [
+        [
+          "9"
+        ]
+      ]
+    },
+    {
+      "name": "array_sum",
+      "cypher": "RETURN array_sum(array_value(1.0, 2.0, 3.0, 4.0)) AS total",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "total"
+      ],
+      "rows": [
+        [
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "array_avg",
+      "cypher": "RETURN array_avg(array_value(2.0, 4.0, 6.0, 8.0)) AS avg",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "avg"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "array_inner_product",
+      "cypher": "RETURN array_inner_product(array_value(1.0, 2.0, 3.0), array_value(4.0, 5.0, 6.0)) AS dot",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dot"
+      ],
+      "rows": [
+        [
+          "32"
+        ]
+      ]
+    },
+    {
+      "name": "array_dot_product_alias",
+      "cypher": "RETURN array_dot_product(array_value(1.0, 0.0, 0.0), array_value(0.0, 1.0, 0.0)) AS dot",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dot"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "array_squared_distance",
+      "cypher": "RETURN array_squared_distance(array_value(0.0, 0.0, 0.0), array_value(3.0, 4.0, 0.0)) AS sq_dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sq_dist"
+      ],
+      "rows": [
+        [
+          "25"
+        ]
+      ]
+    },
+    {
+      "name": "array_distance",
+      "cypher": "RETURN array_distance(array_value(0.0, 0.0), array_value(3.0, 4.0)) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "array_l2_distance_alias",
+      "cypher": "RETURN array_l2_distance(array_value(1.0, 1.0), array_value(4.0, 5.0)) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "array_l1_distance",
+      "cypher": "RETURN array_l1_distance(array_value(1.0, 2.0, 3.0), array_value(4.0, 5.0, 6.0)) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "9"
+        ]
+      ]
+    },
+    {
+      "name": "array_cosine_similarity_orthogonal",
+      "cypher": "RETURN array_cosine_similarity(array_value(1.0, 0.0), array_value(0.0, 1.0)) AS sim",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sim"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "array_cosine_similarity_parallel",
+      "cypher": "RETURN array_cosine_similarity(array_value(1.0, 0.0), array_value(2.0, 0.0)) AS sim",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "sim"
+      ],
+      "rows": [
+        [
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "array_cosine_distance",
+      "cypher": "RETURN array_cosine_distance(array_value(1.0, 0.0), array_value(1.0, 0.0)) AS dist",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "dist"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "array_cross_product",
+      "cypher": "RETURN array_cross_product(array_value(1.0, 0.0, 0.0), array_value(0.0, 1.0, 0.0)) AS cross",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "cross"
+      ],
+      "rows": [
+        [
+          "[0,0,1]"
+        ]
+      ]
+    },
+    {
+      "name": "array_normalize",
+      "cypher": "RETURN array_normalize(array_value(3.0, 4.0)) AS normed",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "normed"
+      ],
+      "rows": [
+        [
+          "[0.6,0.8]"
+        ]
+      ]
+    },
+    {
+      "name": "array_concat",
+      "cypher": "RETURN array_concat(array_value(1, 2), array_value(3, 4)) AS merged",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "merged"
+      ],
+      "rows": [
+        [
+          "[1,2,3,4]"
+        ]
+      ]
+    },
+    {
+      "name": "array_cat_alias",
+      "cypher": "RETURN array_cat(array_value(\u0027x\u0027, \u0027y\u0027), array_value(\u0027z\u0027)) AS merged",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "merged"
+      ],
+      "rows": [
+        [
+          "[\u0022x\u0022,\u0022y\u0022,\u0022z\u0022]"
+        ]
+      ]
+    },
+    {
+      "name": "array_push_front",
+      "cypher": "RETURN array_push_front(array_value(2, 3, 4), 1) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[1,2,3,4]"
+        ]
+      ]
+    },
+    {
+      "name": "array_push_back",
+      "cypher": "RETURN array_push_back(array_value(1, 2, 3), 4) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[1,2,3,4]"
+        ]
+      ]
+    },
+    {
+      "name": "array_append_alias",
+      "cypher": "RETURN array_append(array_value(10, 20), 30) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[10,20,30]"
+        ]
+      ]
+    },
+    {
+      "name": "array_pop_front",
+      "cypher": "RETURN array_pop_front(array_value(1, 2, 3, 4)) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[2,3,4]"
+        ]
+      ]
+    },
+    {
+      "name": "array_pop_back",
+      "cypher": "RETURN array_pop_back(array_value(1, 2, 3, 4)) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[1,2,3]"
+        ]
+      ]
+    },
+    {
+      "name": "array_reverse",
+      "cypher": "RETURN array_reverse(array_value(1, 2, 3, 4, 5)) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[5,4,3,2,1]"
+        ]
+      ]
+    },
+    {
+      "name": "array_unique",
+      "cypher": "RETURN array_unique(array_value(1, 2, 2, 3, 3, 3, 4)) AS arr",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "arr"
+      ],
+      "rows": [
+        [
+          "[1,2,3,4]"
+        ]
+      ]
+    }
+  ]
+}

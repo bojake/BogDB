@@ -1,0 +1,193 @@
+@page "/models"
+@rendermode InteractiveServer
+@inject BenchmarkGraphService Graph
+@inject NavigationManager Nav
+
+<PageTitle>Model Explorer · BogDB LLM Explorer</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Model Explorer</h1>
+    <p class="page-subtitle">Browse, filter, and compare all 12 frontier LLMs in the graph</p>
+</div>
+
+<div class="page-body">
+
+    <div class="filter-bar">
+        <input class="search-input" type="text" placeholder="Search models or orgs…"
+               @bind="_search" @bind:event="oninput" />
+
+        <select class="filter-select" @bind="_ossFilter">
+            <option value="">All types</option>
+            <option value="true">Open-source</option>
+            <option value="false">Proprietary</option>
+        </select>
+
+        <select class="filter-select" @bind="_sortCol">
+            <option value="elo">Sort: ELO</option>
+            <option value="avg">Sort: Avg Score</option>
+            <option value="cost">Sort: Cost</option>
+            <option value="params">Sort: Params</option>
+        </select>
+
+        <span class="badge badge-purple">@Filtered.Count() models</span>
+    </div>
+
+    @if (_rows is null)
+    {
+        <div class="loading-overlay"><span class="spinner"></span> Querying graph…</div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th @onclick='() => SetSort("name")' class="@SortClass("name")">
+                            Model <span class="sort-icon">@SortIcon("name")</span>
+                        </th>
+                        <th @onclick='() => SetSort("org")' class="@SortClass("org")">
+                            Organisation <span class="sort-icon">@SortIcon("org")</span>
+                        </th>
+                        <th @onclick='() => SetSort("avg")' class="@SortClass("avg")">
+                            Avg Score <span class="sort-icon">@SortIcon("avg")</span>
+                        </th>
+                        <th @onclick='() => SetSort("elo")' class="@SortClass("elo")">
+                            ELO <span class="sort-icon">@SortIcon("elo")</span>
+                        </th>
+                        <th @onclick='() => SetSort("cost")' class="@SortClass("cost")">
+                            Cost / 1M <span class="sort-icon">@SortIcon("cost")</span>
+                        </th>
+                        <th @onclick='() => SetSort("params")' class="@SortClass("params")">
+                            Params (B) <span class="sort-icon">@SortIcon("params")</span>
+                        </th>
+                        <th>Type</th>
+                        <th>Context</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Filtered)
+                    {
+                        <tr>
+                            <td><strong>@r.Name</strong></td>
+                            <td>@r.Org</td>
+                            <td>
+                                <div class="score-bar-wrap">
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width:@($"{r.AvgScore}%")"></div>
+                                    </div>
+                                    <span class="score-val">@r.AvgScore.ToString("F1")</span>
+                                </div>
+                            </td>
+                            <td class="td-mono">@r.Elo</td>
+                            <td class="td-mono">$@r.Cost.ToString("G3")</td>
+                            <td class="td-mono">@r.Params.ToString("G3")</td>
+                            <td>
+                                @if (r.OpenSource)
+                                {
+                                    <span class="badge badge-green">Open</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-gray">Proprietary</span>
+                                }
+                            </td>
+                            <td class="td-mono">@r.ContextK K</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm"
+                                        @onclick="() => QueryModel(r.Name)">
+                                    Scorecard →
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ModelRow>? _rows;
+    private string _search    = "";
+    private string _ossFilter = "";
+    private string _sortCol   = "elo";
+    private bool   _sortAsc   = false;
+
+    protected override void OnInitialized()
+    {
+        // Join models + orgs + avg scores in one pass
+        var modelsRes = Graph.Execute(@"
+            MATCH (m:Model)-[:MADE_BY]->(o:Organisation)
+            RETURN m.name AS name, o.name AS org, m.cost_per_1m_in AS cost,
+                   m.params_b AS params, m.open_source AS oss,
+                   m.arena_elo AS elo, m.context_k AS ctx");
+
+        var avgRes = Graph.Execute(@"
+            MATCH (m:Model)-[s:SCORED_ON]->(b:Benchmark)
+            WITH m.name AS model, avg(s.score) AS avg_score
+            RETURN model, avg_score");
+
+        var avgMap = avgRes.Rows.ToDictionary(
+            r => r["model"]?.ToString() ?? "",
+            r => Convert.ToDouble(r["avg_score"] ?? 0));
+
+        _rows = modelsRes.Rows.Select(r => new ModelRow(
+            Name:       r["name"]?.ToString() ?? "",
+            Org:        r["org"]?.ToString() ?? "",
+            Cost:       Convert.ToDouble(r["cost"] ?? 0),
+            Params:     Convert.ToDouble(r["params"] ?? 0),
+            OpenSource: r["oss"] is bool b ? b : r["oss"]?.ToString() == "true",
+            Elo:        Convert.ToInt32(r["elo"] ?? 0),
+            ContextK:   Convert.ToInt64(r["ctx"] ?? 0L),
+            AvgScore:   avgMap.TryGetValue(r["name"]?.ToString() ?? "", out var s) ? s : 0
+        )).ToList();
+    }
+
+    private IEnumerable<ModelRow> Filtered
+    {
+        get
+        {
+            if (_rows is null) return Enumerable.Empty<ModelRow>();
+            var q = _rows.AsEnumerable();
+
+            if (_search.Length > 0)
+                q = q.Where(r => r.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                               || r.Org.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+            if (_ossFilter == "true")  q = q.Where(r => r.OpenSource);
+            if (_ossFilter == "false") q = q.Where(r => !r.OpenSource);
+
+            q = _sortCol switch
+            {
+                "name"   => _sortAsc ? q.OrderBy(r => r.Name)     : q.OrderByDescending(r => r.Name),
+                "org"    => _sortAsc ? q.OrderBy(r => r.Org)      : q.OrderByDescending(r => r.Org),
+                "avg"    => _sortAsc ? q.OrderBy(r => r.AvgScore) : q.OrderByDescending(r => r.AvgScore),
+                "cost"   => _sortAsc ? q.OrderBy(r => r.Cost)     : q.OrderByDescending(r => r.Cost),
+                "params" => _sortAsc ? q.OrderBy(r => r.Params)   : q.OrderByDescending(r => r.Params),
+                _        => _sortAsc ? q.OrderBy(r => r.Elo)      : q.OrderByDescending(r => r.Elo),
+            };
+
+            return q;
+        }
+    }
+
+    private void SetSort(string col)
+    {
+        if (_sortCol == col) _sortAsc = !_sortAsc;
+        else { _sortCol = col; _sortAsc = false; }
+    }
+
+    private string SortClass(string col) => _sortCol == col ? "sorted" : "";
+    private string SortIcon(string col)  => _sortCol != col ? "↕" : _sortAsc ? "↑" : "↓";
+
+    private void QueryModel(string name)
+    {
+        var cypher = $"MATCH (m:Model)-[r:SCORED_ON]->(b:Benchmark)\nWHERE m.name = '{name}'\nRETURN b.name AS benchmark, b.category AS category, r.score AS score, r.method AS method\nORDER BY r.score DESC";
+        Nav.NavigateTo($"/query?q={Uri.EscapeDataString(cypher)}");
+    }
+
+    private record ModelRow(
+        string Name, string Org, double Cost, double Params,
+        bool OpenSource, int Elo, long ContextK, double AvgScore);
+}

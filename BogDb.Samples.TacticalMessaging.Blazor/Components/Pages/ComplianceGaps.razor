@@ -1,0 +1,85 @@
+@page "/gaps"
+@inject TacticalMessagingGraphService Graph
+
+<div class="page-header">
+    <h1 class="page-title">⚠️ Compliance Gaps</h1>
+    <p class="page-sub">Unverified requirements and cross-standard field overlap analysis</p>
+</div>
+
+<div class="two-col">
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Unverified Requirements</h2>
+                <span class="badge badge-red">@_unverified.Count gaps</span>
+            </div>
+            <p class="card-sub">Requirements lacking a test case with PASS evidence</p>
+            @if (_unverified.Count > 0)
+            {
+                <table class="data-table" style="margin-top:0.75rem;">
+                    <thead><tr><th>ID</th><th>Priority</th><th>Component</th><th>Statement</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in _unverified)
+                    {
+                        <tr>
+                            <td class="mono">@r.ReqId</td>
+                            <td><span class="badge @PriorityBadge(r.Priority)">@r.Priority</span></td>
+                            <td style="font-size:0.78rem;">@r.ComponentName</td>
+                            <td style="font-size:0.78rem;max-width:280px;">@r.Statement</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted" style="margin-top:0.75rem;font-size:0.82rem;">No unverified requirements — all have passing evidence.</p>
+            }
+        </div>
+    </div>
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Cross-Standard Field Overlap</h2>
+                <span class="badge badge-blue">@_overlap.Count overlaps</span>
+            </div>
+            <p class="card-sub">Fields sharing the same name across 2+ standards — harmonization candidates</p>
+            @if (_overlap.Count > 0)
+            {
+                <table class="data-table" style="margin-top:0.75rem;">
+                    <thead><tr><th>Field Name</th><th>Standards</th><th>Count</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in _overlap)
+                    {
+                        <tr>
+                            <td class="mono">@r.FieldName</td>
+                            <td style="font-size:0.78rem;">@r.Standards</td>
+                            <td>@r.StandardCount</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted" style="margin-top:0.75rem;font-size:0.82rem;">No cross-standard field overlaps detected.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<UnverifiedReqRow> _unverified = [];
+    private List<FieldOverlapRow> _overlap = [];
+
+    protected override void OnInitialized()
+    {
+        _unverified = Graph.GetUnverifiedRequirements();
+        _overlap = Graph.GetFieldOverlap();
+    }
+
+    private static string PriorityBadge(string p) => p switch
+    {
+        "SHALL" => "badge-red", "SHOULD" => "badge-amber", "MAY" => "badge-teal", _ => "badge-blue"
+    };
+}

@@ -1,0 +1,192 @@
+﻿{
+  "corpus": "corpus-multitable-advanced.cypher",
+  "blessedAt": "2026-03-22T01:42:10.2753747Z",
+  "queries": [
+    {
+      "name": "incoming_works_at",
+      "cypher": "MATCH (c:Company)\u003C-[r:WORKS_AT]-(p:Person) RETURN c.id, p.id, r.since ORDER BY c.id, p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "p.id",
+        "r.since"
+      ],
+      "rows": [
+        [
+          "10",
+          "1",
+          "2020"
+        ],
+        [
+          "10",
+          "2",
+          "2021"
+        ],
+        [
+          "20",
+          "3",
+          "2022"
+        ]
+      ]
+    },
+    {
+      "name": "incoming_located_in",
+      "cypher": "MATCH (city:City)\u003C-[r:LOCATED_IN]-(c:Company) RETURN city.id, c.id, r.opened ORDER BY city.id, c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "city.id",
+        "c.id",
+        "r.opened"
+      ],
+      "rows": [
+        [
+          "100",
+          "10",
+          "2010"
+        ],
+        [
+          "200",
+          "20",
+          "2015"
+        ]
+      ]
+    },
+    {
+      "name": "incoming_company_employee_counts",
+      "cypher": "MATCH (c:Company)\u003C-[:WORKS_AT]-(p:Person) RETURN c.id, COUNT(*) AS cnt ORDER BY c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "10",
+          "2"
+        ],
+        [
+          "20",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "incoming_city_chain",
+      "cypher": "MATCH (city:City)\u003C-[:LOCATED_IN]-(c:Company)\u003C-[:WORKS_AT]-(p:Person) RETURN city.id, c.id, p.id ORDER BY city.id, c.id, p.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "city.id",
+        "c.id",
+        "p.id"
+      ],
+      "rows": [
+        [
+          "100",
+          "10",
+          "1"
+        ],
+        [
+          "100",
+          "10",
+          "2"
+        ],
+        [
+          "200",
+          "20",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "multi_rel_company_counts",
+      "cypher": "MATCH (p:Person)-[:WORKS_AT|ADVISES]-\u003E(c:Company) RETURN c.id, COUNT(*) AS cnt ORDER BY c.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "cnt"
+      ],
+      "rows": [
+        [
+          "10",
+          "2"
+        ],
+        [
+          "20",
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "advised_company_people",
+      "cypher": "MATCH (c:Company)\u003C-[r:ADVISES]-(p:Person) RETURN c.id, p.name, r.hours ORDER BY c.id, p.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "c.id",
+        "p.name",
+        "r.hours"
+      ],
+      "rows": [
+        [
+          "20",
+          "Alice",
+          "10"
+        ],
+        [
+          "20",
+          "Bob",
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "incoming_with_endpoint_filter",
+      "cypher": "MATCH (c:Company)\u003C-[:WORKS_AT]-(p:Person) WHERE c.revenue \u003E= 1500 RETURN p.name, c.name ORDER BY p.name, c.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "c.name"
+      ],
+      "rows": [
+        [
+          "Carol",
+          "Beta"
+        ]
+      ]
+    },
+    {
+      "name": "city_region_incoming_union",
+      "cypher": "MATCH (city:City)\u003C-[:LOCATED_IN]-(c:Company)\u003C-[:WORKS_AT|ADVISES]-(p:Person) WHERE city.region = \u0027south\u0027 RETURN p.name, c.name, city.name ORDER BY p.name, c.name",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "p.name",
+        "c.name",
+        "city.name"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Beta",
+          "Austin"
+        ],
+        [
+          "Bob",
+          "Beta",
+          "Austin"
+        ],
+        [
+          "Carol",
+          "Beta",
+          "Austin"
+        ]
+      ]
+    }
+  ]
+}

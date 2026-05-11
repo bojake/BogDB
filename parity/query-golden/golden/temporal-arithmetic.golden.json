@@ -1,0 +1,1362 @@
+﻿{
+  "corpus": "corpus-temporal-arithmetic.cypher",
+  "blessedAt": "2026-04-03T00:23:47.1122653Z",
+  "queries": [
+    {
+      "name": "date_add_days",
+      "cypher": "RETURN date_add(\u0027day\u0027, date(\u00272024-01-01\u0027), 10) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-01-11T00:00:00.0000000"
+        ]
+      ]
+    },
+    {
+      "name": "date_add_months",
+      "cypher": "RETURN date_add(\u0027month\u0027, date(\u00272024-01-31\u0027), 3) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-04-30T00:00:00.0000000"
+        ]
+      ]
+    },
+    {
+      "name": "date_add_years",
+      "cypher": "RETURN date_add(\u0027year\u0027, date(\u00272020-02-29\u0027), 4) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-02-29T00:00:00.0000000"
+        ]
+      ]
+    },
+    {
+      "name": "date_add_hours",
+      "cypher": "RETURN date_add(\u0027hour\u0027, date(\u00272024-06-15\u0027), 36) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-06-16T12:00:00.0000000"
+        ]
+      ]
+    },
+    {
+      "name": "date_diff_days",
+      "cypher": "RETURN date_diff(\u0027day\u0027, date(\u00272024-01-01\u0027), date(\u00272024-03-15\u0027)) AS diff_days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "diff_days"
+      ],
+      "rows": [
+        [
+          "74"
+        ]
+      ]
+    },
+    {
+      "name": "date_diff_months",
+      "cypher": "RETURN date_diff(\u0027month\u0027, date(\u00272023-03-01\u0027), date(\u00272024-09-01\u0027)) AS diff_months",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "diff_months"
+      ],
+      "rows": [
+        [
+          "18"
+        ]
+      ]
+    },
+    {
+      "name": "date_diff_years",
+      "cypher": "RETURN date_diff(\u0027year\u0027, date(\u00272000-01-01\u0027), date(\u00272024-01-01\u0027)) AS diff_years",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "diff_years"
+      ],
+      "rows": [
+        [
+          "24"
+        ]
+      ]
+    },
+    {
+      "name": "date_diff_hours",
+      "cypher": "RETURN date_diff(\u0027hour\u0027, date(\u00272024-01-01\u0027), date(\u00272024-01-02\u0027)) AS diff_hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "diff_hours"
+      ],
+      "rows": [
+        [
+          "24"
+        ]
+      ]
+    },
+    {
+      "name": "date_trunc_year",
+      "cypher": "RETURN date_trunc(\u0027year\u0027, date(\u00272024-07-15\u0027)) AS truncated",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "truncated"
+      ],
+      "rows": [
+        [
+          "2024-01-01T00:00:00.0000000Z"
+        ]
+      ]
+    },
+    {
+      "name": "date_trunc_month",
+      "cypher": "RETURN date_trunc(\u0027month\u0027, date(\u00272024-07-15\u0027)) AS truncated",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "truncated"
+      ],
+      "rows": [
+        [
+          "2024-07-01T00:00:00.0000000Z"
+        ]
+      ]
+    },
+    {
+      "name": "date_part_year",
+      "cypher": "RETURN date_part(\u0027year\u0027, date(\u00272024-07-15\u0027)) AS y",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "y"
+      ],
+      "rows": [
+        [
+          "2024"
+        ]
+      ]
+    },
+    {
+      "name": "date_part_month",
+      "cypher": "RETURN date_part(\u0027month\u0027, date(\u00272024-07-15\u0027)) AS m",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m"
+      ],
+      "rows": [
+        [
+          "7"
+        ]
+      ]
+    },
+    {
+      "name": "date_part_day",
+      "cypher": "RETURN date_part(\u0027day\u0027, date(\u00272024-07-15\u0027)) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "d"
+      ],
+      "rows": [
+        [
+          "15"
+        ]
+      ]
+    },
+    {
+      "name": "date_part_quarter",
+      "cypher": "RETURN date_part(\u0027quarter\u0027, date(\u00272024-07-15\u0027)) AS q",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "q"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "extract_alias",
+      "cypher": "RETURN extract(\u0027month\u0027, date(\u00272024-07-15\u0027)) AS m",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m"
+      ],
+      "rows": [
+        [
+          "7"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_add_hours",
+      "cypher": "RETURN timestamp_add(\u0027hour\u0027, timestamp(\u00272024-01-01T12:00:00\u0027), 5) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-01-01 17:00:00"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_add_days",
+      "cypher": "RETURN timestamp_add(\u0027day\u0027, timestamp(\u00272024-01-01T00:00:00\u0027), 7) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-01-08 00:00:00"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_add_minutes",
+      "cypher": "RETURN timestamp_add(\u0027minute\u0027, timestamp(\u00272024-01-01T10:00:00\u0027), 90) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-01-01 11:30:00"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_diff_hours",
+      "cypher": "RETURN timestamp_diff(\u0027hour\u0027, timestamp(\u00272024-01-01T06:00:00\u0027), timestamp(\u00272024-01-01T18:00:00\u0027)) AS diff_hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "diff_hours"
+      ],
+      "rows": [
+        [
+          "-12"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_diff_days",
+      "cypher": "RETURN timestamp_diff(\u0027day\u0027, timestamp(\u00272024-01-01T00:00:00\u0027), timestamp(\u00272024-01-15T00:00:00\u0027)) AS diff_days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "diff_days"
+      ],
+      "rows": [
+        [
+          "-14"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_year_part",
+      "cypher": "RETURN timestamp_year(timestamp(\u00272024-07-15T10:30:00\u0027)) AS y",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "y"
+      ],
+      "rows": [
+        [
+          "2024"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_month_part",
+      "cypher": "RETURN timestamp_month(timestamp(\u00272024-07-15T10:30:00\u0027)) AS m",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "m"
+      ],
+      "rows": [
+        [
+          "7"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_day_part",
+      "cypher": "RETURN timestamp_day(timestamp(\u00272024-07-15T10:30:00\u0027)) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "d"
+      ],
+      "rows": [
+        [
+          "15"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_hour_part",
+      "cypher": "RETURN timestamp_hour(timestamp(\u00272024-07-15T10:30:00\u0027)) AS h",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "h"
+      ],
+      "rows": [
+        [
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_minute_part",
+      "cypher": "RETURN timestamp_minute(timestamp(\u00272024-07-15T10:30:00\u0027)) AS mi",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "mi"
+      ],
+      "rows": [
+        [
+          "30"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_second_part",
+      "cypher": "RETURN timestamp_second(timestamp(\u00272024-07-15T10:30:45\u0027)) AS s",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "s"
+      ],
+      "rows": [
+        [
+          "45"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_millisecond_part",
+      "cypher": "RETURN timestamp_millisecond(timestamp(\u00272024-07-15T10:30:45\u0027)) AS ms",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ms"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "make_date",
+      "cypher": "RETURN make_date(2024, 7, 15) AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "d"
+      ],
+      "rows": [
+        [
+          "2024-07-15"
+        ]
+      ]
+    },
+    {
+      "name": "make_timestamp",
+      "cypher": "RETURN make_timestamp(2024, 7, 15, 10, 30, 0) AS ts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ts"
+      ],
+      "rows": [
+        [
+          "2024-07-15T10:30:00.0000000Z"
+        ]
+      ]
+    },
+    {
+      "name": "epoch_ms_roundtrip",
+      "cypher": "RETURN to_epoch_ms(timestamp(\u00271970-01-01T00:00:01\u0027)) AS ms",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ms"
+      ],
+      "rows": [
+        [
+          "1000"
+        ]
+      ]
+    },
+    {
+      "name": "epoch_s_roundtrip",
+      "cypher": "RETURN epoch_s(0) AS epoch_start",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "epoch_start"
+      ],
+      "rows": [
+        [
+          "1970-01-01 00:00:00"
+        ]
+      ]
+    },
+    {
+      "name": "date_component_extractors_alias",
+      "cypher": "RETURN year(date(\u00272024-07-15\u0027))   AS y, month(date(\u00272024-07-15\u0027))  AS m, day(date(\u00272024-07-15\u0027))    AS d",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "y",
+        "m",
+        "d"
+      ],
+      "rows": [
+        [
+          "2024",
+          "7",
+          "15"
+        ]
+      ]
+    },
+    {
+      "name": "date_trunc_day",
+      "cypher": "RETURN date_trunc(\u0027day\u0027, timestamp(\u00272024-07-15T14:32:10\u0027)) AS truncated",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "truncated"
+      ],
+      "rows": [
+        [
+          "2024-07-15T00:00:00.0000000"
+        ]
+      ]
+    },
+    {
+      "name": "date_trunc_hour",
+      "cypher": "RETURN date_trunc(\u0027hour\u0027, timestamp(\u00272024-07-15T14:32:10\u0027)) AS truncated",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "truncated"
+      ],
+      "rows": [
+        [
+          "2024-07-15T14:00:00.0000000Z"
+        ]
+      ]
+    },
+    {
+      "name": "date_diff_chained",
+      "cypher": "RETURN date_diff(\u0027day\u0027, date_add(\u0027month\u0027, date(\u00272024-01-01\u0027), 6), date(\u00272024-07-01\u0027)) AS gap_days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "gap_days"
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "interval_constructor_days",
+      "cypher": "RETURN interval(\u00273 days\u0027) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P3D"
+        ]
+      ]
+    },
+    {
+      "name": "interval_constructor_word_mix",
+      "cypher": "RETURN duration(\u00272 years 5 days\u0027) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P2Y5D"
+        ]
+      ]
+    },
+    {
+      "name": "interval_to_years",
+      "cypher": "RETURN to_years(2) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P2Y"
+        ]
+      ]
+    },
+    {
+      "name": "date_plus_interval",
+      "cypher": "RETURN date(\u00272024-01-01\u0027) \u002B interval(\u00273 days\u0027) AS shifted",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "shifted"
+      ],
+      "rows": [
+        [
+          "2024-01-04"
+        ]
+      ]
+    },
+    {
+      "name": "date_minus_date_interval",
+      "cypher": "RETURN date(\u00272024-01-10\u0027) - date(\u00272024-01-01\u0027) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P9D"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_minus_timestamp_interval",
+      "cypher": "RETURN timestamp(\u00272024-01-03T00:00:00Z\u0027) - timestamp(\u00272024-01-01T00:00:00Z\u0027) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P2D"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_plus_interval_preserves_time",
+      "cypher": "RETURN timestamp(\u00272024-01-01T12:00:00\u0027) \u002B interval(\u00272 days\u0027) AS shifted",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "shifted"
+      ],
+      "rows": [
+        [
+          "2024-01-03T12:00:00.0000000\u002B00:00"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_minus_interval_preserves_time",
+      "cypher": "RETURN timestamp(\u00272024-01-03T12:00:00\u0027) - interval(\u00272 days\u0027) AS shifted",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "shifted"
+      ],
+      "rows": [
+        [
+          "2024-01-01T12:00:00.0000000\u002B00:00"
+        ]
+      ]
+    },
+    {
+      "name": "interval_plus_timestamp_preserves_time",
+      "cypher": "RETURN interval(\u00272 days\u0027) \u002B timestamp(\u00272024-01-01T12:00:00\u0027) AS shifted",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "shifted"
+      ],
+      "rows": [
+        [
+          "2024-01-03T12:00:00.0000000\u002B00:00"
+        ]
+      ]
+    },
+    {
+      "name": "timestamp_minus_timestamp_mixed_day_time",
+      "cypher": "RETURN timestamp(\u00272024-01-03T12:00:00\u0027) - timestamp(\u00272024-01-01T11:30:00\u0027) AS delta, date_part(\u0027day\u0027, timestamp(\u00272024-01-03T12:00:00\u0027) - timestamp(\u00272024-01-01T11:30:00\u0027)) AS days, date_part(\u0027minute\u0027, timestamp(\u00272024-01-03T12:00:00\u0027) - timestamp(\u00272024-01-01T11:30:00\u0027)) AS minutes",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "days",
+        "minutes"
+      ],
+      "rows": [
+        [
+          "P2DT30M",
+          "2",
+          "30"
+        ]
+      ]
+    },
+    {
+      "name": "interval_negative_fractional_minutes",
+      "cypher": "RETURN interval(\u0027-1.5 minutes\u0027) AS delta, date_part(\u0027minute\u0027, interval(\u0027-1.5 minutes\u0027)) AS minutes, date_part(\u0027second\u0027, interval(\u0027-1.5 minutes\u0027)) AS seconds",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "minutes",
+        "seconds"
+      ],
+      "rows": [
+        [
+          "-PT1M30S",
+          "-1",
+          "-30"
+        ]
+      ]
+    },
+    {
+      "name": "interval_date_part_year",
+      "cypher": "RETURN date_part(\u0027year\u0027, to_years(4)) AS years",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "years"
+      ],
+      "rows": [
+        [
+          "4"
+        ]
+      ]
+    },
+    {
+      "name": "interval_date_part_quarter_week",
+      "cypher": "RETURN date_part(\u0027quarter\u0027, to_months(14)) AS quarter, date_part(\u0027week\u0027, to_days(15)) AS week",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "quarter",
+        "week"
+      ],
+      "rows": [
+        [
+          "4",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "interval_mixed_day_time_canonicalization",
+      "cypher": "RETURN to_days(1) - to_hours(1) AS delta, date_part(\u0027day\u0027, to_days(1) - to_hours(1)) AS days, date_part(\u0027hour\u0027, to_days(1) - to_hours(1)) AS hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "days",
+        "hours"
+      ],
+      "rows": [
+        [
+          "PT23H",
+          "0",
+          "23"
+        ]
+      ]
+    },
+    {
+      "name": "interval_mixed_month_day_signs",
+      "cypher": "RETURN to_months(1) - to_days(1) AS delta, date_part(\u0027month\u0027, to_months(1) - to_days(1)) AS months, date_part(\u0027day\u0027, to_months(1) - to_days(1)) AS days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "months",
+        "days"
+      ],
+      "rows": [
+        [
+          "1 month -1 day",
+          "1",
+          "-1"
+        ]
+      ]
+    },
+    {
+      "name": "interval_unary_negate",
+      "cypher": "RETURN -to_days(2) AS delta, date_part(\u0027day\u0027, -to_days(2)) AS days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "days"
+      ],
+      "rows": [
+        [
+          "-P2D",
+          "-2"
+        ]
+      ]
+    },
+    {
+      "name": "interval_negative_time_parts",
+      "cypher": "RETURN -to_hours(2) AS delta, date_part(\u0027hour\u0027, -to_hours(2)) AS hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "hours"
+      ],
+      "rows": [
+        [
+          "-PT2H",
+          "-2"
+        ]
+      ]
+    },
+    {
+      "name": "interval_negative_cross_day_parts",
+      "cypher": "RETURN -(to_hours(25) \u002B to_minutes(30)) AS delta, date_part(\u0027day\u0027, -(to_hours(25) \u002B to_minutes(30))) AS days, date_part(\u0027hour\u0027, -(to_hours(25) \u002B to_minutes(30))) AS hours, date_part(\u0027minute\u0027, -(to_hours(25) \u002B to_minutes(30))) AS minutes",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "days",
+        "hours",
+        "minutes"
+      ],
+      "rows": [
+        [
+          "-P1DT1H30M",
+          "-1",
+          "-1",
+          "-30"
+        ]
+      ]
+    },
+    {
+      "name": "interval_plus_interval_same_type",
+      "cypher": "RETURN to_days(2) \u002B to_days(3) AS delta, date_part(\u0027day\u0027, to_days(2) \u002B to_days(3)) AS days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "days"
+      ],
+      "rows": [
+        [
+          "P5D",
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "interval_plus_interval_mixed_month_day",
+      "cypher": "RETURN to_months(1) \u002B to_days(15) AS delta, date_part(\u0027month\u0027, to_months(1) \u002B to_days(15)) AS months, date_part(\u0027day\u0027,   to_months(1) \u002B to_days(15)) AS days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "months",
+        "days"
+      ],
+      "rows": [
+        [
+          "P1M15D",
+          "1",
+          "15"
+        ]
+      ]
+    },
+    {
+      "name": "interval_plus_interval_time_overflow_to_days",
+      "cypher": "RETURN to_hours(23) \u002B to_hours(2) AS delta, date_part(\u0027day\u0027,  to_hours(23) \u002B to_hours(2)) AS days, date_part(\u0027hour\u0027, to_hours(23) \u002B to_hours(2)) AS hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "days",
+        "hours"
+      ],
+      "rows": [
+        [
+          "P1DT1H",
+          "1",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "interval_date_minus_interval",
+      "cypher": "RETURN date(\u00272024-01-10\u0027) - interval(\u00273 days\u0027) AS result",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "result"
+      ],
+      "rows": [
+        [
+          "2024-01-07"
+        ]
+      ]
+    },
+    {
+      "name": "interval_to_minutes_hour_normalize",
+      "cypher": "RETURN to_minutes(70) AS delta, date_part(\u0027hour\u0027,   to_minutes(70)) AS hours, date_part(\u0027minute\u0027, to_minutes(70)) AS minutes",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "hours",
+        "minutes"
+      ],
+      "rows": [
+        [
+          "PT1H10M",
+          "1",
+          "10"
+        ]
+      ]
+    },
+    {
+      "name": "interval_to_milliseconds_second_normalize",
+      "cypher": "RETURN to_milliseconds(1500) AS delta, date_part(\u0027second\u0027,      to_milliseconds(1500)) AS seconds, date_part(\u0027millisecond\u0027, to_milliseconds(1500)) AS milliseconds",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "seconds",
+        "milliseconds"
+      ],
+      "rows": [
+        [
+          "PT1.5S",
+          "1",
+          "500"
+        ]
+      ]
+    },
+    {
+      "name": "interval_to_seconds_minute_normalize",
+      "cypher": "RETURN to_seconds(90) AS delta, date_part(\u0027minute\u0027, to_seconds(90)) AS minutes, date_part(\u0027second\u0027, to_seconds(90)) AS seconds",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "minutes",
+        "seconds"
+      ],
+      "rows": [
+        [
+          "PT1M30S",
+          "1",
+          "30"
+        ]
+      ]
+    },
+    {
+      "name": "interval_reverse_mixed_sign",
+      "cypher": "RETURN to_days(5) - to_months(1) AS delta, date_part(\u0027month\u0027, to_days(5) - to_months(1)) AS months, date_part(\u0027day\u0027,   to_days(5) - to_months(1)) AS days",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "months",
+        "days"
+      ],
+      "rows": [
+        [
+          "-1 month 5 days",
+          "-1",
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "interval_mixed_month_day_time_signs",
+      "cypher": "RETURN to_months(1) - to_days(1) - to_hours(25) AS delta, date_part(\u0027month\u0027, to_months(1) - to_days(1) - to_hours(25)) AS months, date_part(\u0027day\u0027,   to_months(1) - to_days(1) - to_hours(25)) AS days, date_part(\u0027hour\u0027,  to_months(1) - to_days(1) - to_hours(25)) AS hours",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "months",
+        "days",
+        "hours"
+      ],
+      "rows": [
+        [
+          "1 month -2 days -1 hour",
+          "1",
+          "-2",
+          "-1"
+        ]
+      ]
+    },
+    {
+      "name": "interval_zero_value",
+      "cypher": "RETURN to_seconds(0) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "PT0S"
+        ]
+      ]
+    },
+    {
+      "name": "interval_iso_roundtrip",
+      "cypher": "RETURN interval(\u0027P1Y2M3DT4H5M6S\u0027) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P1Y2M3DT4H5M6S"
+        ]
+      ]
+    },
+    {
+      "name": "interval_cast_from_string",
+      "cypher": "RETURN CAST(\u00273 days\u0027 AS INTERVAL) AS delta",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta"
+      ],
+      "rows": [
+        [
+          "P3D"
+        ]
+      ]
+    },
+    {
+      "name": "interval_list_nested_stringification",
+      "cypher": "RETURN [to_days(1), to_hours(25), \u0027tag\u0027] AS values",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "values"
+      ],
+      "rows": [
+        [
+          "[\u0022P1D\u0022,\u0022P1DT1H\u0022,\u0022tag\u0022]"
+        ]
+      ]
+    },
+    {
+      "name": "interval_map_nested_stringification",
+      "cypher": "RETURN map([\u0027day\u0027, \u0027hour\u0027], [to_days(1), to_hours(25)]) AS parts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "parts"
+      ],
+      "rows": [
+        [
+          "{\u0022day\u0022:\u0022P1D\u0022,\u0022hour\u0022:\u0022P1DT1H\u0022}"
+        ]
+      ]
+    },
+    {
+      "name": "interval_struct_nested_stringification",
+      "cypher": "RETURN struct_pack(\u0027day\u0027, to_days(1), \u0027hour\u0027, to_hours(25)) AS parts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "parts"
+      ],
+      "rows": [
+        [
+          "{\u0022day\u0022:\u0022P1D\u0022,\u0022hour\u0022:\u0022P1DT1H\u0022}"
+        ]
+      ]
+    },
+    {
+      "name": "interval_struct_deep_nested_stringification",
+      "cypher": "RETURN struct_pack(\u0027nested\u0027, struct_pack(\u0027delta\u0027, to_days(1)), \u0027listy\u0027, [to_hours(25)]) AS parts",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "parts"
+      ],
+      "rows": [
+        [
+          "{\u0022listy\u0022:[\u0022P1DT1H\u0022],\u0022nested\u0022:{\u0022delta\u0022:\u0022P1D\u0022}}"
+        ]
+      ]
+    },
+    {
+      "name": "interval_list_structural_equality",
+      "cypher": "RETURN [to_days(1), to_hours(25)] = [to_days(1), to_hours(25)] AS eq",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "eq"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "interval_struct_structural_equality",
+      "cypher": "RETURN struct_pack(\u0027day\u0027, to_days(1), \u0027hour\u0027, to_hours(25)) = struct_pack(\u0027day\u0027, to_days(1), \u0027hour\u0027, to_hours(25)) AS eq",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "eq"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "interval_list_contains_nested_membership",
+      "cypher": "RETURN list_contains([[to_days(1)], [to_days(2)]], [to_days(1)]) AS ok",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "ok"
+      ],
+      "rows": [
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "interval_list_unique_nested_values",
+      "cypher": "RETURN list_unique([[to_days(1)], [to_days(1)], [to_days(2)]]) AS vals",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "vals"
+      ],
+      "rows": [
+        [
+          "[[\u0022P1D\u0022],[\u0022P2D\u0022]]"
+        ]
+      ]
+    },
+    {
+      "name": "interval_distinct_nested_lists",
+      "cypher": "UNWIND [[to_days(1)], [to_days(1)], [to_days(2)]] AS vals WITH DISTINCT vals RETURN vals ORDER BY tostring(vals)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "vals"
+      ],
+      "rows": [
+        [
+          "[\u0022P1D\u0022]"
+        ],
+        [
+          "[\u0022P2D\u0022]"
+        ]
+      ]
+    },
+    {
+      "name": "interval_count_distinct_nested_lists",
+      "cypher": "UNWIND [[to_days(1)], [to_days(1)], [to_days(2)]] AS vals RETURN count(DISTINCT vals) AS n",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "n"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "interval_group_by_nested_lists",
+      "cypher": "UNWIND [[to_days(1)], [to_days(1)], [to_days(2)]] AS vals RETURN vals, count(*) AS n ORDER BY tostring(vals)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "vals",
+        "n"
+      ],
+      "rows": [
+        [
+          "[\u0022P1D\u0022]",
+          "2"
+        ],
+        [
+          "[\u0022P2D\u0022]",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "interval_order_by_nested_lists",
+      "cypher": "UNWIND [[to_days(2)], [to_days(1)]] AS vals RETURN vals ORDER BY vals",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "vals"
+      ],
+      "rows": [
+        [
+          "[\u0022P1D\u0022]"
+        ],
+        [
+          "[\u0022P2D\u0022]"
+        ]
+      ]
+    },
+    {
+      "name": "interval_topk_nested_lists",
+      "cypher": "UNWIND [[to_days(2)], [to_days(1)]] AS vals RETURN vals ORDER BY vals LIMIT 1",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "vals"
+      ],
+      "rows": [
+        [
+          "[\u0022P1D\u0022]"
+        ]
+      ]
+    },
+    {
+      "name": "interval_divide_integer",
+      "cypher": "RETURN interval(\u00273 years 2 days 13 hours 2 minutes\u0027) / 3 AS delta, date_part(\u0027year\u0027, interval(\u00273 years 2 days 13 hours 2 minutes\u0027) / 3) AS y, date_part(\u0027hour\u0027, interval(\u00273 years 2 days 13 hours 2 minutes\u0027) / 3) AS h, date_part(\u0027minute\u0027, interval(\u00273 years 2 days 13 hours 2 minutes\u0027) / 3) AS m, date_part(\u0027second\u0027, interval(\u00273 years 2 days 13 hours 2 minutes\u0027) / 3) AS s",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "y",
+        "h",
+        "m",
+        "s"
+      ],
+      "rows": [
+        [
+          "P1YT20H20M40S",
+          "1",
+          "20",
+          "20",
+          "40"
+        ]
+      ]
+    },
+    {
+      "name": "interval_divide_negative_integer",
+      "cypher": "RETURN -interval(\u00273 days 3 hours\u0027) / 3 AS delta, date_part(\u0027day\u0027, -interval(\u00273 days 3 hours\u0027) / 3) AS d, date_part(\u0027hour\u0027, -interval(\u00273 days 3 hours\u0027) / 3) AS h",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "delta",
+        "d",
+        "h"
+      ],
+      "rows": [
+        [
+          "-P1DT1H",
+          "-1",
+          "-1"
+        ]
+      ]
+    },
+    {
+      "name": "interval_extended_native_units",
+      "cypher": "RETURN interval(\u00273 quarter\u0027) AS quarter, interval(\u00273 decade\u0027) AS decade, interval(\u00273 century\u0027) AS century, interval(\u00273 millennium\u0027) AS millennium",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "quarter",
+        "decade",
+        "century",
+        "millennium"
+      ],
+      "rows": [
+        [
+          "P9M",
+          "P30Y",
+          "P300Y",
+          "P3000Y"
+        ]
+      ]
+    },
+    {
+      "name": "interval_fractional_month_family",
+      "cypher": "RETURN interval(\u00271.5 month\u0027) AS month, interval(\u00271.5 year\u0027) AS year, interval(\u00271.5 quarter\u0027) AS quarter",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "month",
+        "year",
+        "quarter"
+      ],
+      "rows": [
+        [
+          "P1M15D",
+          "P1Y6M",
+          "P4M15D"
+        ]
+      ]
+    },
+    {
+      "name": "interval_time_literal_and_abbreviations",
+      "cypher": "RETURN interval(\u002735:10:00\u0027) AS time_only, interval(\u00271 year 12:00:00\u0027) AS trailing_time, interval(\u00272 yrs 3 mons 4 d 5 h 6 m 7 s 8 ms 9 us\u0027) AS abbreviated",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "time_only",
+        "trailing_time",
+        "abbreviated"
+      ],
+      "rows": [
+        [
+          "P1DT11H10M",
+          "P1YT12H",
+          "P2Y3M4DT5H6M7.008009S"
+        ]
+      ]
+    },
+    {
+      "name": "interval_extended_calendar_parts",
+      "cypher": "RETURN date_part(\u0027year\u0027, interval(\u00271234 years 5 months\u0027)) AS y, date_part(\u0027decade\u0027, interval(\u00271234 years 5 months\u0027)) AS dec, date_part(\u0027century\u0027, interval(\u00271234 years 5 months\u0027)) AS c, date_part(\u0027millennium\u0027, interval(\u00271234 years 5 months\u0027)) AS mil, date_part(\u0027month\u0027, interval(\u00271234 years 5 months\u0027)) AS m",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "y",
+        "dec",
+        "c",
+        "mil",
+        "m"
+      ],
+      "rows": [
+        [
+          "1234",
+          "123",
+          "12",
+          "1",
+          "5"
+        ]
+      ]
+    },
+    {
+      "name": "interval_ordered_comparisons",
+      "cypher": "RETURN interval(\u00271 month\u0027) \u003C= interval(\u002730 days\u0027) AS month_le_30_days, interval(\u00271 month\u0027) \u003E= interval(\u002730 days\u0027) AS month_ge_30_days, interval(\u00271 month\u0027) \u003C interval(\u002731 days\u0027) AS month_lt_31_days, interval(\u002730 days 1 hour\u0027) \u003E interval(\u00271 month\u0027) AS thirty_days_hour_gt_month",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "month_le_30_days",
+        "month_ge_30_days",
+        "month_lt_31_days",
+        "thirty_days_hour_gt_month"
+      ],
+      "rows": [
+        [
+          "True",
+          "True",
+          "True",
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "interval_canonicalization_overflow",
+      "cypher": "RETURN interval(\u002736500 days 2400 hours 3600000 milliseconds\u0027)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "interval(\u002736500 days 2400 hours 3600000 milliseconds\u0027)"
+      ],
+      "rows": [
+        [
+          "P36600DT1H"
+        ]
+      ]
+    },
+    {
+      "name": "interval_mixed_sign_evaluations",
+      "cypher": "RETURN interval(\u00271 month - 20 days 5 hours\u0027), interval(\u0027-1 year 2 months -10 days\u0027), date(\u00272026-06-15\u0027) \u002B interval(\u00271 month - 40 days\u0027)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "interval(\u00271 month - 20 days 5 hours\u0027)",
+        "interval(\u0027-1 year 2 months -10 days\u0027)",
+        "date(\u00272026-06-15\u0027) \u002B interval(\u00271 month - 40 days\u0027)"
+      ],
+      "rows": [
+        [
+          "\u003Cnull\u003E",
+          "-P10M10D",
+          "2026-06-15"
+        ]
+      ]
+    },
+    {
+      "name": "interval_leap_year_extrema",
+      "cypher": "RETURN date(\u00272024-02-29\u0027) \u002B interval(\u00271 year\u0027), date(\u00272024-02-29\u0027) \u002B interval(\u00274 years\u0027), date(\u00272026-01-31\u0027) \u002B interval(\u00271 month\u0027)",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "date(\u00272024-02-29\u0027) \u002B interval(\u00271 year\u0027)",
+        "date(\u00272024-02-29\u0027) \u002B interval(\u00274 years\u0027)",
+        "date(\u00272026-01-31\u0027) \u002B interval(\u00271 month\u0027)"
+      ],
+      "rows": [
+        [
+          "2025-02-28",
+          "2028-02-29",
+          "2026-02-28"
+        ]
+      ]
+    }
+  ]
+}

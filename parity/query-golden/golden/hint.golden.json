@@ -1,0 +1,22 @@
+﻿{
+  "corpus": "corpus-hint.cypher",
+  "blessedAt": "2026-04-01T19:10:25.2382640Z",
+  "queries": [
+    {
+      "name": "join_order_hint",
+      "cypher": "MATCH (a:Person), (b:Person) HINT (a JOIN b) RETURN a.id, b.id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "a.id",
+        "b.id"
+      ],
+      "rows": [
+        [
+          "1",
+          "1"
+        ]
+      ]
+    }
+  ]
+}

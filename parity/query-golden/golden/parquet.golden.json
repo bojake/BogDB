@@ -1,0 +1,22 @@
+﻿{
+  "corpus": "corpus-parquet.cypher",
+  "blessedAt": "2026-04-01T19:10:25.2382640Z",
+  "queries": [
+    {
+      "name": "load_from_parquet",
+      "cypher": "LOAD FROM \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_86317eaa84d54013b49eebac99c49341/dummy.parquet\u0027 RETURN *",
+      "isSuccess": false,
+      "errorMessage": "JSON file not found: \u0027{fixture_dir}/dummy.parquet\u0027",
+      "columnNames": [],
+      "rows": []
+    },
+    {
+      "name": "copy_to_parquet",
+      "cypher": "COPY (MATCH (d:Dummy) RETURN d.*) TO \u0027/var/folders/75/k03x0_795d79qmcw1r5l0w440000gn/T/bogdb_golden_86317eaa84d54013b49eebac99c49341/dummy.parquet\u0027",
+      "isSuccess": false,
+      "errorMessage": "Property \u0027*\u0027 not found on node \u0027d\u0027 (tables: Dummy).",
+      "columnNames": [],
+      "rows": []
+    }
+  ]
+}

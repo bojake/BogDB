@@ -1,0 +1,160 @@
+﻿{
+  "corpus": "corpus-paths.cypher",
+  "blessedAt": "2026-03-29T00:19:29.6979550Z",
+  "queries": [
+    {
+      "name": "path_length_two_hop",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*2..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 40 RETURN length(p) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "path_nodes_count_two_hop",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*2..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 40 RETURN array_length(nodes(p)) AS node_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "node_count"
+      ],
+      "rows": [
+        [
+          "3"
+        ]
+      ]
+    },
+    {
+      "name": "path_rels_count_two_hop",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*2..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 40 RETURN array_length(rels(p)) AS rel_count",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "rel_count"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "path_first_last_nodes",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*2..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 40 RETURN list_element(nodes(p), 1) AS first_node, list_element(nodes(p), 3) AS last_node",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "first_node",
+        "last_node"
+      ],
+      "rows": [
+        [
+          "10",
+          "40"
+        ]
+      ]
+    },
+    {
+      "name": "path_is_acyclic",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*1..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 30 RETURN is_acyclic(p) AS acyclic_flag ORDER BY acyclic_flag",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "acyclic_flag"
+      ],
+      "rows": [
+        [
+          "True"
+        ],
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "path_is_trail",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*1..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 30 RETURN is_trail(p) AS trail_flag ORDER BY trail_flag",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "trail_flag"
+      ],
+      "rows": [
+        [
+          "True"
+        ],
+        [
+          "True"
+        ]
+      ]
+    },
+    {
+      "name": "undirected_path_lengths_from_beta",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*1..2]-(c2:Company) WHERE c1.id = 20 RETURN c2.id AS target_id, length(p) AS len ORDER BY target_id, len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "target_id",
+        "len"
+      ],
+      "rows": [
+        [
+          "10",
+          "1"
+        ],
+        [
+          "10",
+          "2"
+        ],
+        [
+          "30",
+          "1"
+        ],
+        [
+          "30",
+          "2"
+        ],
+        [
+          "40",
+          "2"
+        ]
+      ]
+    },
+    {
+      "name": "path_nodes_are_company_ids",
+      "cypher": "MATCH (c1:Company)-[p:PARTNERS_WITH*1..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 20 RETURN list_element(nodes(p), 1) AS start_id, list_element(nodes(p), 2) AS end_id",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "start_id",
+        "end_id"
+      ],
+      "rows": [
+        [
+          "10",
+          "20"
+        ]
+      ]
+    },
+    {
+      "name": "path_assignment_alias_length",
+      "cypher": "MATCH p = (c1:Company)-[:PARTNERS_WITH*2..2]-\u003E(c2:Company) WHERE c1.id = 10 AND c2.id = 40 RETURN length(p) AS len",
+      "isSuccess": true,
+      "errorMessage": null,
+      "columnNames": [
+        "len"
+      ],
+      "rows": [
+        [
+          "2"
+        ]
+      ]
+    }
+  ]
+}
