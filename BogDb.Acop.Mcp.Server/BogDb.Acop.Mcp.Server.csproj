@@ -12,6 +12,11 @@
     <Title>ACOP MCP Server</Title>
     <Description>Reference Model Context Protocol (MCP) server for the Agentic Code Orchestration Protocol (ACOP). Exposes the ACOP coordination write surface — claim, complete, create work item, accept handoff, post blackboard — over stdio JSON-RPC, so MCP-capable agents (Claude Code, Codex, custom harnesses) can drive coordination state via tool calls. Coordination authority is delegated to a pluggable backend adapter; the shipped HTTP adapter targets any ACOP-compatible coordination middleware via a configurable base URI.</Description>
     <PackageTags>acop;mcp;orchestration;coordination;agentic;agents;dotnet</PackageTags>
+    <SkipDefaultPackageReadme>true</SkipDefaultPackageReadme>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
