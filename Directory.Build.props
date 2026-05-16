@@ -19,7 +19,15 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+  <!--
+    Packable projects default to shipping the root README in the NuGet so the
+    package landing page on nuget.org has the suite-wide context. Projects
+    that ship their own README (the MCP server tools) set
+    <SkipDefaultPackageReadme>true</SkipDefaultPackageReadme> and add their
+    own None Include="README.md" — see BogDb.Mcp.Server,
+    BogDb.Mcp.Codegen.Server, BogDb.Acop.Mcp.Server.
+  -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(SkipDefaultPackageReadme)' != 'true'">
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

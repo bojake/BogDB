@@ -1,0 +1,31 @@
+{
+  "name": "claim-release.success",
+  "verb": "release",
+  "depends_on": ["claim-grant.success"],
+  "request": {
+    "method": "POST",
+    "path": "claims/${claim_id}/release",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_http_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "worker_agent_uid": "worker-http",
+      "release_reason": "blocked_on_review"
+    }
+  },
+  "expected_response": {
+    "status": 200,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "claim": {
+          "claim_id": "${claim_id}",
+          "claim_status": "released"
+        }
+      }
+    }
+  }
+}

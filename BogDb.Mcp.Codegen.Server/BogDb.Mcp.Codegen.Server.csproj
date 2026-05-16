@@ -11,11 +11,16 @@
     <PackageId>BogDB.Mcp.Codegen.Server</PackageId>
     <Title>BogDB Codegen MCP Server</Title>
     <Description>Model Context Protocol code-generation server for natural-language Cypher workflows with BogDB.</Description>
+    <SkipDefaultPackageReadme>true</SkipDefaultPackageReadme>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BogDb.Core\BogDb.Core.csproj" />
     <ProjectReference Include="..\BogDb.Mcp.Server\BogDb.Mcp.Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

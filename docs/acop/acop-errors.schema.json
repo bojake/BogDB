@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acop.dev/schemas/v1.0/acop-errors.schema.json",
+  "title": "ACOP Error Response Schema",
+  "description": "Normative shape for error response bodies in the ACOP HTTP+JSON binding.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "error"
+  ],
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "acop/1.0"
+    },
+    "error": {
+      "$ref": "#/$defs/error"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "An ACOP error code. MUST be either a reserved core code or a vendor-prefixed extension code matching '^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$'.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable explanation. MUST NOT contain secrets."
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "When set, clients SHOULD wait at least this many seconds before retrying. MUST agree with the HTTP Retry-After header when both are present."
+        },
+        "details": {
+          "type": "object",
+          "description": "Code-specific structured context. Shape varies per code.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "reserved_core_codes": {
+      "description": "Informational enumeration of the reserved ACOP core error codes (see acop-http-binding.md § error code vocabulary). Not used as a schema constraint because vendor-prefixed extension codes are also valid.",
+      "type": "string",
+      "enum": [
+        "claim_conflict",
+        "lease_expired",
+        "claim_released",
+        "claim_revoked",
+        "unauthorized_worker",
+        "work_item_not_found",
+        "work_item_superseded",
+        "work_item_cancelled",
+        "work_item_not_actionable",
+        "validation_required",
+        "gate_blocked",
+        "unsupported_protocol_version",
+        "schema_violation",
+        "unauthenticated",
+        "forbidden",
+        "rate_limited",
+        "internal_error",
+        "backend_unavailable"
+      ]
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "accept-handoff.not-found",
+  "verb": "accept_handoff",
+  "request": {
+    "method": "POST",
+    "path": "work-items/work%3Afixture%3Adoes-not-exist/accept",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${lead_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "accepting_agent_uid": "lead-01"
+    }
+  },
+  "expected_response": {
+    "status": 404,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "error": {
+          "code": "work_item_not_found"
+        }
+      }
+    }
+  }
+}

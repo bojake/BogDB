@@ -11,10 +11,15 @@
     <PackageId>BogDB.Mcp.Server</PackageId>
     <Title>BogDB MCP Server</Title>
     <Description>Model Context Protocol server for querying BogDB from AI agents.</Description>
+    <SkipDefaultPackageReadme>true</SkipDefaultPackageReadme>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BogDb.Core\BogDb.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

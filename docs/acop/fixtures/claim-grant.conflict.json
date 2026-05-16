@@ -1,0 +1,35 @@
+{
+  "name": "claim-grant.conflict",
+  "verb": "claim_work_item",
+  "depends_on": ["claim-grant.success"],
+  "request": {
+    "method": "POST",
+    "path": "claims",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_other_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "work_item_id": "work:fixture:resource-hub-http",
+      "worker_agent_uid": "worker-other",
+      "requested_ttl_seconds": 1800,
+      "scope": "owned_paths"
+    }
+  },
+  "expected_response": {
+    "status": 409,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "error": {
+          "code": "claim_conflict",
+          "details": {
+            "work_item_id": "work:fixture:resource-hub-http"
+          }
+        }
+      }
+    }
+  }
+}
