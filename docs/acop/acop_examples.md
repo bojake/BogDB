@@ -13,10 +13,10 @@ The examples use one shared `work_item_id` so it is easy to see how:
 
 ```json
 {
-  "protocol_version": "acop/0.1",
+  "protocol_version": "acop/1.0",
   "work_item": {
     "work_item_id": "work:refactor:resource-hub-http",
-    "protocol_version": "acop/0.1",
+    "protocol_version": "acop/1.0",
     "work_kind": "refactor",
     "created_at_utc": "2026-04-17T19:10:00Z",
     "producer": "bo",
@@ -112,10 +112,10 @@ The examples use one shared `work_item_id` so it is easy to see how:
 
 ```json
 {
-  "protocol_version": "acop/0.1",
+  "protocol_version": "acop/1.0",
   "work_item": {
     "work_item_id": "work:refactor:resource-hub-http",
-    "protocol_version": "acop/0.1",
+    "protocol_version": "acop/1.0",
     "work_kind": "refactor",
     "created_at_utc": "2026-04-17T19:10:00Z",
     "producer": "bo",
@@ -146,7 +146,7 @@ The examples use one shared `work_item_id` so it is easy to see how:
 
 ```json
 {
-  "protocol_version": "acop/0.1",
+  "protocol_version": "acop/1.0",
   "compliance_profile_version": "acop-compliance/0.1",
   "work_item_id": "work:refactor:resource-hub-http",
   "requirements": [
@@ -238,7 +238,7 @@ The examples use one shared `work_item_id` so it is easy to see how:
 
 ```json
 {
-  "protocol_version": "acop/0.1",
+  "protocol_version": "acop/1.0",
   "compliance_profile_version": "acop-compliance/0.1",
   "work_item_id": "work:repair:build-break-fix",
   "exception_justifications": [
@@ -286,11 +286,11 @@ Those belong to orchestration middleware sitting above the producer and the grap
 
 ```json
 {
-  "protocol_version": "acop/0.1",
+  "protocol_version": "acop/1.0",
   "orchestration_profile_version": "acop-orchestration/0.1",
   "flow": {
     "flow_id": "flow:example-project:phase-delivery",
-    "protocol_version": "acop/0.1",
+    "protocol_version": "acop/1.0",
     "orchestration_profile_version": "acop-orchestration/0.1",
     "title": "ExampleProject phased delivery",
     "summary": "Parallel implementation lanes with explicit integration and compliance release gates.",

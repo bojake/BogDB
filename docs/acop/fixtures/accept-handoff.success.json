@@ -1,0 +1,30 @@
+{
+  "name": "accept-handoff.success",
+  "verb": "accept_handoff",
+  "depends_on": ["claim-complete.success"],
+  "request": {
+    "method": "POST",
+    "path": "work-items/work%3Afixture%3Aresource-hub-http/accept",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${lead_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "accepting_agent_uid": "lead-01",
+      "acceptance_notes": "review acknowledged, ready to consume"
+    }
+  },
+  "expected_response": {
+    "status": 200,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "work_item": {
+          "work_item_id": "work:fixture:resource-hub-http"
+        }
+      }
+    }
+  }
+}

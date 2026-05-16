@@ -1,0 +1,43 @@
+{
+  "name": "claim-grant.success",
+  "verb": "claim_work_item",
+  "depends_on": ["work-item-create.success"],
+  "request": {
+    "method": "POST",
+    "path": "claims",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_http_token}",
+      "Idempotency-Key": "fixture-claim-grant-01"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "work_item_id": "work:fixture:resource-hub-http",
+      "worker_agent_uid": "worker-http",
+      "requested_ttl_seconds": 1800,
+      "scope": "owned_paths"
+    }
+  },
+  "expected_response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "claim": {
+          "work_item_id": "work:fixture:resource-hub-http",
+          "worker_agent_uid": "worker-http",
+          "claim_status": "active"
+        },
+        "work_item_status": "claimed"
+      }
+    }
+  },
+  "captures": {
+    "claim_id": "$.claim.claim_id",
+    "claim_expires_at_utc": "$.claim.expires_at_utc"
+  }
+}

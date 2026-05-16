@@ -1,58 +1,80 @@
-# ACOP spec polish: path to public v1.0
+# ACOP spec polish
 
-This file tracks the remaining work to promote ACOP from v0.1 draft to a
-defensible public v1.0 specification. Open it after the ASE/CLAiR runtime
-gap-closure work is done.
+This file tracks remaining work on the ACOP specification.
 
-## Required for v1.0
+ACOP core is now at **v1.0** (stable). The items below tracked the
+v0.1 → v1.0 promotion and are checked off where done. Remaining work is
+either follow-on hosting (publishing schemas under a stable host) or
+promotion work for the experimental extensions.
 
-- [ ] **HTTP+JSON transport binding.** ACOP is currently transport-neutral.
-  Pick HTTP+JSON as the normative wire format and document request/response
-  shapes for every core verb (claim, renew, release, complete, post
-  blackboard, create work item, accept handoff). The JSON schemas already
-  exist; the binding adds the operation/URL/status code mapping.
-- [ ] **RFC 2119 normative language.** Replace "should," "recommended," and
-  "examples" with MUST / SHOULD / MAY per clause so conformance is testable.
-  Add a "Conformance" section to acop.md.
-- [ ] **State-machine diagrams** for `WorkItem.status` transitions and
-  `Claim.claim_status` transitions. Document which transitions an
-  implementation MUST support, MAY support, and MUST NOT permit.
-- [ ] **Error model.** Define a code vocabulary for failure responses
-  (e.g. `claim_conflict`, `work_item_superseded`, `lease_expired`,
-  `unauthorized_worker`). Include retry guidance per code.
-- [ ] **Authentication and authorization sketch.** The spec doesn't need to
-  mandate a scheme but MUST state that implementations authenticate workers
-  and scope claims to authenticated identity. Recommend (not mandate) OIDC
-  bearer tokens for HTTP binding.
-- [ ] **Versioning policy.** Document `protocol_version` semantics:
-  what's additive, what's breaking, and how implementations negotiate.
-- [ ] **Conformance test fixtures.** A set of request/response examples
-  per verb, ideally executable against any HTTP binding implementation.
-  Lives next to the spec as JSON files.
+## Required for v1.0 — DONE
 
-## Strongly recommended
+- [x] **HTTP+JSON transport binding.** See
+  [acop-http-binding.md](./acop-http-binding.md). Defines request/response
+  shapes, status codes, and operation paths for every core verb (claim,
+  renew, release, complete, post blackboard, create work item, accept
+  handoff). Mirrors the conventions in
+  [HttpAcopBackend](../../BogDb.Acop.Mcp.Server/Adapters/HttpAcopBackend.cs).
+- [x] **RFC 2119 normative language.** [acop.md](./acop.md) and
+  [acop-http-binding.md](./acop-http-binding.md) now use MUST / SHOULD /
+  MAY in normative clauses. A "Conformance" section is in both documents.
+- [x] **State-machine diagrams.** [acop.md § State machines](./acop.md#state-machines)
+  documents the `WorkItem.status` and `Claim.claim_status` transition
+  tables (required, optional, forbidden) plus ASCII diagrams.
+- [x] **Error model.** [acop-http-binding.md § Error model](./acop-http-binding.md#error-model)
+  defines the vocabulary and per-code retry guidance; the body shape is
+  captured in [acop-errors.schema.json](./acop-errors.schema.json).
+- [x] **Authentication and authorization sketch.** See
+  [acop-http-binding.md § Authentication and authorization](./acop-http-binding.md#authentication-and-authorization).
+  Implementations MUST authenticate workers and scope claims to
+  authenticated identity; OIDC bearer tokens are RECOMMENDED.
+- [x] **Versioning policy.** See
+  [acop.md § Versioning policy](./acop.md#versioning-policy). Documents
+  the additive vs breaking distinction, minor-version negotiation rules,
+  and per-extension stability labels.
+- [x] **Conformance test fixtures.** See [fixtures/](./fixtures/). One
+  JSON file per scenario, covering the happy path, conflict, expiry,
+  schema violation, authentication, and protocol-version negotiation.
 
-- [ ] **Sequence diagrams** for the worker happy path (read pending → claim →
-  heartbeat → complete) and the handoff path.
-- [ ] **Concurrency and consistency notes.** What's the contract when two
-  workers race for the same claim? Lease-renewal semantics on contention?
-- [ ] **Stability labels per extension.** Mark `acop-orchestration` and
-  `acop-compliance` independently from core (e.g. "core: stable," extensions:
-  "experimental").
-- [ ] **Recommended blocker code namespaces.** The current examples
-  (`seam_extraction_required`, etc.) are illustrative; a public spec should
-  reserve and document core blocker codes.
+## Strongly recommended — DONE
 
-## Nice to have
+- [x] **Sequence diagrams.** Worker happy path, claim conflict path, and
+  handoff path are in
+  [acop-http-binding.md § Sequence diagrams](./acop-http-binding.md#sequence-diagrams).
+- [x] **Concurrency and consistency notes.** See
+  [acop-http-binding.md § Concurrency and consistency](./acop-http-binding.md#concurrency-and-consistency)
+  for race semantics and renewal guidance.
+- [x] **Stability labels per extension.** Core, HTTP binding,
+  orchestration, compliance, and read-side MCP are each labeled in
+  [acop.md § Stability labels per extension](./acop.md#stability-labels-per-extension)
+  and on each extension document.
+- [x] **Recommended blocker code namespaces.** See
+  [acop.md § Blocker code namespaces](./acop.md#blocker-code-namespaces).
+  Eight core codes reserved; `x.<vendor>.` prefix open for extensions.
+
+## Nice to have — open
 
 - [ ] A two-page "ACOP at a glance" document for first-time readers.
 - [ ] A second backend adapter in `BogDb.Acop.Mcp.Server` to prove the
   protocol is genuinely backend-agnostic (e.g. an in-memory implementation
   for testing).
 - [ ] Public hosting of the JSON schemas under the `acop.dev` (or chosen)
-  domain so `$id` URLs resolve.
+  domain so `$id` URLs resolve. The schemas are currently authored against
+  `https://acop.dev/schemas/v1.0/...` (and `v0.1/...` for experimental
+  extensions) as a placeholder.
+- [ ] A reference conformance runner that executes [fixtures/](./fixtures/)
+  end-to-end against an implementation. The fixtures themselves are
+  runner-agnostic but no runner ships in this repo yet.
 
-## Out of scope for v1.0
+## Extension promotion to v1.0 — open
+
+- [ ] Promote `acop-orchestration` from experimental v0.1 to stable v1.0
+  (RFC 2119 pass, state machine for gate/lane/stage, conformance
+  fixtures).
+- [ ] Promote `acop-compliance` from experimental v0.1 to stable v1.0
+  (RFC 2119 pass, conformance fixtures, formal exception lifecycle).
+
+## Out of scope for ACOP core v1.0
 
 - A full A2A binding (separate spec workstream).
 - Scheduler internals — ACOP defines the coordination contract, not the

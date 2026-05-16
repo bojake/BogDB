@@ -1,0 +1,42 @@
+{
+  "name": "blackboard-post.success",
+  "verb": "post_blackboard",
+  "depends_on": ["work-item-create.success"],
+  "request": {
+    "method": "POST",
+    "path": "blackboard",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${lead_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "entry": {
+        "work_item_id": "work:fixture:resource-hub-http",
+        "entry_kind": "risk",
+        "author_agent_uid": "lead-01",
+        "created_at_utc": "2026-05-16T19:12:00Z",
+        "status": "active",
+        "summary": "Watch for shared helper retention in owner after extraction.",
+        "confidence": 0.86
+      }
+    }
+  },
+  "expected_response": {
+    "status": 201,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "entry": {
+          "work_item_id": "work:fixture:resource-hub-http",
+          "entry_kind": "risk",
+          "status": "active"
+        }
+      }
+    }
+  },
+  "captures": {
+    "entry_id": "$.entry.entry_id"
+  }
+}

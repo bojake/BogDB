@@ -1,0 +1,30 @@
+{
+  "name": "claim-renew.unauthorized",
+  "verb": "renew",
+  "depends_on": ["claim-grant.success"],
+  "request": {
+    "method": "POST",
+    "path": "claims/${claim_id}/renew",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_other_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "worker_agent_uid": "worker-other",
+      "requested_ttl_seconds": 1800
+    }
+  },
+  "expected_response": {
+    "status": 403,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "error": {
+          "code": "unauthorized_worker"
+        }
+      }
+    }
+  }
+}

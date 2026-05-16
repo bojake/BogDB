@@ -13,7 +13,7 @@
   "properties": {
     "protocol_version": {
       "type": "string",
-      "const": "acop/0.1"
+      "const": "acop/1.0"
     },
     "orchestration_profile_version": {
       "type": "string",
@@ -142,7 +142,7 @@
         },
         "protocol_version": {
           "type": "string",
-          "const": "acop/0.1"
+          "const": "acop/1.0"
         },
         "orchestration_profile_version": {
           "type": "string",

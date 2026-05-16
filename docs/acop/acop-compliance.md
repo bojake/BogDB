@@ -1,5 +1,13 @@
 # ACOP Compliance Profile v0.1 Draft
 
+## Status
+
+Stability: **experimental**. Version: `acop-compliance/0.1`. This profile
+is versioned independently from ACOP core; the surface MAY change in a
+backwards-incompatible way before it ships its own 1.0. Implementations
+that adopt this profile SHOULD pin to an exact version. See
+[acop.md § Versioning policy](./acop.md#versioning-policy).
+
 ## Purpose
 
 This document defines a compliance-oriented extension profile for ACOP.

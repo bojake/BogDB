@@ -1,0 +1,31 @@
+{
+  "name": "protocol-version.rejected",
+  "verb": "any",
+  "notes": "Exercises the protocol version negotiation rule. Servers MUST reject an unknown major version with unsupported_protocol_version.",
+  "request": {
+    "method": "POST",
+    "path": "claims",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_http_token}"
+    },
+    "body": {
+      "protocol_version": "acop/99.0",
+      "work_item_id": "work:fixture:resource-hub-http",
+      "worker_agent_uid": "worker-http",
+      "requested_ttl_seconds": 1800,
+      "scope": "owned_paths"
+    }
+  },
+  "expected_response": {
+    "status": 400,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "error": {
+          "code": "unsupported_protocol_version"
+        }
+      }
+    }
+  }
+}

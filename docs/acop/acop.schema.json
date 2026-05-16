@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://acop.dev/schemas/v0.1/acop.schema.json",
+  "$id": "https://acop.dev/schemas/v1.0/acop.schema.json",
   "title": "ACOP Core Schema",
   "description": "Agentic Code Orchestration Protocol core work-coordination contract.",
   "type": "object",
@@ -11,7 +11,7 @@
   "properties": {
     "protocol_version": {
       "type": "string",
-      "const": "acop/0.1"
+      "const": "acop/1.0"
     },
     "work_item": {
       "$ref": "#/$defs/work_item"
@@ -166,7 +166,7 @@
         },
         "protocol_version": {
           "type": "string",
-          "const": "acop/0.1"
+          "const": "acop/1.0"
         },
         "work_kind": {
           "$ref": "#/$defs/work_kind"

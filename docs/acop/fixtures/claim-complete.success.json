@@ -1,0 +1,35 @@
+{
+  "name": "claim-complete.success",
+  "verb": "complete",
+  "notes": "Run against a fresh claim (not the one released by claim-release.success). Runners typically seed a second work item and claim for this fixture.",
+  "request": {
+    "method": "POST",
+    "path": "claims/${active_claim_id}/complete",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_http_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "worker_agent_uid": "worker-http",
+      "completion_evidence": {
+        "validation_results": ["validation:http-targeted-tests"],
+        "artifact_ids": ["artifact:http-impl"]
+      }
+    }
+  },
+  "expected_response": {
+    "status": 200,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "claim": {
+          "claim_id": "${active_claim_id}",
+          "claim_status": "released"
+        },
+        "work_item_status": "completed"
+      }
+    }
+  }
+}

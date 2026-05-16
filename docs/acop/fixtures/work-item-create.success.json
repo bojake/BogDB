@@ -1,0 +1,56 @@
+{
+  "name": "work-item-create.success",
+  "verb": "create_work_item",
+  "request": {
+    "method": "PUT",
+    "path": "work-items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${producer_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "work_item": {
+        "work_item_id": "work:fixture:resource-hub-http",
+        "protocol_version": "acop/1.0",
+        "work_kind": "refactor",
+        "created_at_utc": "2026-05-16T19:10:00Z",
+        "producer": "fixture-producer",
+        "status": "ready",
+        "priority": "high",
+        "actionability_score": 0.92,
+        "title": "Extract ResourceHub HTTP collaborator",
+        "summary": "Split the HTTP seam from ResourceHubService.",
+        "target_repo_id": "repo:fixture",
+        "target_branch": "fixture/resourcehub-http",
+        "target_agent_uid": "worker-http",
+        "owned_paths": [
+          "src/Resources/ResourceHubService.cs"
+        ]
+      },
+      "validation_requirements": [
+        {
+          "requirement_id": "validation:http-targeted-tests",
+          "kind": "test_pass",
+          "summary": "HTTP seam extraction must pass targeted tests."
+        }
+      ]
+    }
+  },
+  "expected_response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "work_item": {
+          "work_item_id": "work:fixture:resource-hub-http",
+          "status": "ready"
+        }
+      }
+    }
+  }
+}

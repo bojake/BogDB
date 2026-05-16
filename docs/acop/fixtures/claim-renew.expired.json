@@ -1,0 +1,30 @@
+{
+  "name": "claim-renew.expired",
+  "verb": "renew",
+  "notes": "Runner MUST exercise this fixture only against a claim whose expires_at_utc has passed. A typical runner seeds a short-TTL claim (requested_ttl_seconds: 1), waits past it, then issues this renew.",
+  "request": {
+    "method": "POST",
+    "path": "claims/${expired_claim_id}/renew",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_http_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "worker_agent_uid": "worker-http",
+      "requested_ttl_seconds": 1800
+    }
+  },
+  "expected_response": {
+    "status": 409,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "error": {
+          "code": "lease_expired"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "claim-complete.no-evidence",
+  "verb": "complete",
+  "notes": "Run against a work item whose validation_requirements list at least one entry. completion_evidence omits matching evidence so the server MUST reject.",
+  "request": {
+    "method": "POST",
+    "path": "claims/${active_claim_id}/complete",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${worker_http_token}"
+    },
+    "body": {
+      "protocol_version": "acop/1.0",
+      "worker_agent_uid": "worker-http",
+      "completion_evidence": {
+        "validation_results": [],
+        "artifact_ids": []
+      }
+    }
+  },
+  "expected_response": {
+    "status": 409,
+    "body_match": {
+      "kind": "subset",
+      "value": {
+        "protocol_version": "acop/1.0",
+        "error": {
+          "code": "validation_required"
+        }
+      }
+    }
+  }
+}

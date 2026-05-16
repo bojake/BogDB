@@ -1,5 +1,13 @@
 # ACOP Orchestration Extension v0.1 Draft
 
+## Status
+
+Stability: **experimental**. Version: `acop-orchestration/0.1`. This extension
+is versioned independently from ACOP core; the surface MAY change in a
+backwards-incompatible way before it ships its own 1.0. Implementations
+that adopt this extension SHOULD pin to an exact version. See
+[acop.md § Versioning policy](./acop.md#versioning-policy).
+
 ## Purpose
 
 This document defines a reusable orchestration extension for ACOP.
