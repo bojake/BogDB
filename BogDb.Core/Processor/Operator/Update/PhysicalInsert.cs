@@ -44,150 +44,158 @@ public sealed class PhysicalInsert : PhysicalOperator
 
     public override bool GetNextTuple(ExecutionContext context)
     {
-        if (_hasExecuted) return false;
-
-        // Try to pull from the Match block (or execute if no dependencies)
-        bool shouldExecute = Children.Count > 0 ? Children[0].GetNextTuple(context) : true;
-
-        if (shouldExecute)
+        // CREATE runs one row at a time. When there is an upstream source (e.g. MATCH ... CREATE) the
+        // parent pulls us once per input row, so each pull must perform the inserts and report a row —
+        // preserving the source's cardinality. The previous single-shot latch performed the inserts
+        // exactly once regardless of how many rows the source produced, so `MATCH (p) CREATE (:T {..})`
+        // created a single node no matter how many p matched. A bare CREATE (no upstream) still runs
+        // exactly once across the operator's lifetime.
+        if (Children.Count > 0)
         {
-            // No match found -> execute the inserts
-            foreach (var node in _nodes)
+            if (!Children[0].GetNextTuple(context))
+                return false;   // upstream exhausted — no more rows to create
+        }
+        else if (_hasExecuted)
+        {
+            return false;
+        }
+
+        foreach (var node in _nodes)
+        {
+            if (!string.IsNullOrEmpty(node.VariableName) &&
+                context.CurrentVariableIds != null &&
+                context.CurrentVariableIds.ContainsKey(node.VariableName))
             {
-                if (!string.IsNullOrEmpty(node.VariableName) && 
-                    context.CurrentVariableIds != null && 
-                    context.CurrentVariableIds.ContainsKey(node.VariableName))
-                {
-                    // Variable is already bound by the upstream MATCH pipeline! Skip creating a new node.
-                    continue;
-                }
+                // Variable is already bound by the upstream MATCH pipeline! Skip creating a new node.
+                continue;
+            }
 
-                var tableName = node.TableNames.Count > 0 ? node.TableNames[0] : "";
-                var properties = new Dictionary<string, object>();
-                object? idValue = null;
+            var tableName = node.TableNames.Count > 0 ? node.TableNames[0] : "";
+            var properties = new Dictionary<string, object>();
+            object? idValue = null;
 
-                if (node.InlinePropertyBag != null)
+            if (node.InlinePropertyBag != null)
+            {
+                foreach (var (key, value) in EvaluatePropertyBag(node.InlinePropertyBag, context))
                 {
-                    foreach (var (key, value) in EvaluatePropertyBag(node.InlinePropertyBag, context))
-                    {
-                        if (value is not null)
-                            properties[key] = value;
-                        if (key.Equals("id", StringComparison.OrdinalIgnoreCase))
-                            idValue = value;
-                    }
-                }
-
-                // Real extraction: check inline bound values
-                foreach (var inlineProp in node.InlineProperties)
-                {
-                    var value = Common.TypeCoercionHelper.Normalize(
-                        ExpressionExecutionHelper.Evaluate(inlineProp.Value, context));
                     if (value is not null)
-                        properties[inlineProp.Key] = value;
-                    if (inlineProp.Key.Equals("id", StringComparison.OrdinalIgnoreCase))
-                    {
+                        properties[key] = value;
+                    if (key.Equals("id", StringComparison.OrdinalIgnoreCase))
                         idValue = value;
-                    }
-                }
-
-                if (idValue == null)
-                {
-                    idValue = Guid.NewGuid().ToString();
-                }
-
-                var tableEntry = _database.Catalog.GetTableCatalogEntry(context.Transaction, tableName, useInternal: false);
-                properties = PropertyValueCoercion.CoerceProperties(tableEntry, properties);
-
-                if (_database.IsInMemory)
-                {
-                    if (!_database.NodeTables.ContainsKey(tableName))
-                    {
-                        _database.NodeTables[tableName] = new Main.NodeTableData();
-                    }
-                    var table = _database.NodeTables[tableName];
-                    table.Upsert(context.Transaction, idValue, properties);
-                }
-
-                _database.GraphLog.AppendNode(tableName, idValue, properties);
-
-                // Populate any registered property indexes via the canonical db method
-                if (_database.IsInMemory && _database.NodeTables.TryGetValue(tableName, out var idxTable))
-                    _database.UpdateNodeIndexes(tableName, context.Transaction, idValue, properties, idxTable);
-
-                // Bind variable to context so downstream operators see it
-                if (!string.IsNullOrEmpty(node.VariableName))
-                {
-                    context.CurrentVariableIds ??= new Dictionary<string, object>();
-                    context.CurrentVariableProperties ??= new Dictionary<string, Dictionary<string, object>>();
-                    context.CurrentVariableIds[node.VariableName] = idValue;
-                    context.CurrentVariableProperties[node.VariableName] = properties;
                 }
             }
 
-            foreach (var rel in _rels)
+            // Real extraction: check inline bound values
+            foreach (var inlineProp in node.InlineProperties)
             {
-                var tableName = rel.TableNames.Count > 0 ? rel.TableNames[0] : "";
-                var properties = new Dictionary<string, object>();
-
-                if (rel.InlinePropertyBag != null)
+                var value = Common.TypeCoercionHelper.Normalize(
+                    ExpressionExecutionHelper.Evaluate(inlineProp.Value, context));
+                if (value is not null)
+                    properties[inlineProp.Key] = value;
+                if (inlineProp.Key.Equals("id", StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (var (key, value) in EvaluatePropertyBag(rel.InlinePropertyBag, context))
-                    {
-                        if (value is not null)
-                            properties[key] = value;
-                    }
+                    idValue = value;
                 }
+            }
 
-                 // Note: we'd normally extract src/dst IDs from the bound rel. 
-                 // For now, generating a surrogate relationship ID.
-                object fromId = Guid.NewGuid().ToString();
-                object toId = Guid.NewGuid().ToString();
+            if (idValue == null)
+            {
+                idValue = Guid.NewGuid().ToString();
+            }
 
-                // Because UpsertRelationship does MATCH (a) MATCH (b) MERGE (a)-[r:KNOWS]->(b)
-                // We should pull IDs from context.
-                if (rel.SrcNode != null && !string.IsNullOrEmpty(rel.SrcNode.VariableName) && context.CurrentVariableIds != null)
-                {
-                    if (context.CurrentVariableIds.TryGetValue(rel.SrcNode.VariableName, out var val)) fromId = val;
-                }
-                if (rel.DstNode != null && !string.IsNullOrEmpty(rel.DstNode.VariableName) && context.CurrentVariableIds != null)
-                {
-                    if (context.CurrentVariableIds.TryGetValue(rel.DstNode.VariableName, out var val)) toId = val;
-                }
+            var tableEntry = _database.Catalog.GetTableCatalogEntry(context.Transaction, tableName, useInternal: false);
+            properties = PropertyValueCoercion.CoerceProperties(tableEntry, properties);
 
-                var relId = new Main.EdgeKey(fromId, toId);
-                
-                // Track inline properties
-                foreach (var inlineProp in rel.InlineProperties)
+            // The in-memory NodeTables dict is the live read model in BOTH modes: for a file-backed DB
+            // it is the working copy the snapshot is written from and the graph log replays into on
+            // reopen. So the write must land here regardless of IsInMemory — exactly as the UpsertNode
+            // API does. Gating this on IsInMemory made every Cypher CREATE on a file-backed database
+            // write only the graph log, leaving the row invisible to scans and then lost at persist.
+            if (!_database.NodeTables.TryGetValue(tableName, out var table))
+            {
+                table = new Main.NodeTableData();
+                _database.BindTablePersistenceSurface(tableName, table);
+                _database.NodeTables[tableName] = table;
+            }
+            table.Upsert(context.Transaction, idValue, properties);
+
+            _database.GraphLog.AppendNode(tableName, idValue, properties);
+
+            // Populate any registered property indexes via the canonical db method.
+            _database.UpdateNodeIndexes(tableName, context.Transaction, idValue, properties, table);
+
+            // Bind variable to context so downstream operators see it
+            if (!string.IsNullOrEmpty(node.VariableName))
+            {
+                context.CurrentVariableIds ??= new Dictionary<string, object>();
+                context.CurrentVariableProperties ??= new Dictionary<string, Dictionary<string, object>>();
+                context.CurrentVariableIds[node.VariableName] = idValue;
+                context.CurrentVariableProperties[node.VariableName] = properties;
+            }
+        }
+
+        foreach (var rel in _rels)
+        {
+            var tableName = rel.TableNames.Count > 0 ? rel.TableNames[0] : "";
+            var properties = new Dictionary<string, object>();
+
+            if (rel.InlinePropertyBag != null)
+            {
+                foreach (var (key, value) in EvaluatePropertyBag(rel.InlinePropertyBag, context))
                 {
-                    var value = Common.TypeCoercionHelper.Normalize(
-                        ExpressionExecutionHelper.Evaluate(inlineProp.Value, context));
                     if (value is not null)
-                        properties[inlineProp.Key] = value;
+                        properties[key] = value;
                 }
-                
-                var tableEntry = _database.Catalog.GetTableCatalogEntry(context.Transaction, tableName, useInternal: false);
-                properties = PropertyValueCoercion.CoerceProperties(tableEntry, properties);
+            }
 
-                if (_database.IsInMemory)
-                {
-                    if (!_database.RelTables.ContainsKey(tableName))
-                    {
-                        _database.RelTables[tableName] = new Main.RelTableData();
-                    }
-                    var table = _database.RelTables[tableName];
-                    table.Upsert(context.Transaction, relId, properties);
-                }
+             // Note: we'd normally extract src/dst IDs from the bound rel.
+             // For now, generating a surrogate relationship ID.
+            object fromId = Guid.NewGuid().ToString();
+            object toId = Guid.NewGuid().ToString();
 
-                _database.GraphLog.AppendRel(tableName, fromId, toId, properties);
+            // Because UpsertRelationship does MATCH (a) MATCH (b) MERGE (a)-[r:KNOWS]->(b)
+            // We should pull IDs from context.
+            if (rel.SrcNode != null && !string.IsNullOrEmpty(rel.SrcNode.VariableName) && context.CurrentVariableIds != null)
+            {
+                if (context.CurrentVariableIds.TryGetValue(rel.SrcNode.VariableName, out var val)) fromId = val;
+            }
+            if (rel.DstNode != null && !string.IsNullOrEmpty(rel.DstNode.VariableName) && context.CurrentVariableIds != null)
+            {
+                if (context.CurrentVariableIds.TryGetValue(rel.DstNode.VariableName, out var val)) toId = val;
+            }
 
-                // Bind relationship variable to context so downstream operators see it
-                if (!string.IsNullOrEmpty(rel.VariableName))
-                {
-                    context.CurrentVariableIds ??= new Dictionary<string, object>();
-                    context.CurrentVariableProperties ??= new Dictionary<string, Dictionary<string, object>>();
-                    context.CurrentVariableIds[rel.VariableName] = relId;
-                    context.CurrentVariableProperties[rel.VariableName] = properties;
-                }
+            var relId = new Main.EdgeKey(fromId, toId);
+
+            // Track inline properties
+            foreach (var inlineProp in rel.InlineProperties)
+            {
+                var value = Common.TypeCoercionHelper.Normalize(
+                    ExpressionExecutionHelper.Evaluate(inlineProp.Value, context));
+                if (value is not null)
+                    properties[inlineProp.Key] = value;
+            }
+
+            var tableEntry = _database.Catalog.GetTableCatalogEntry(context.Transaction, tableName, useInternal: false);
+            properties = PropertyValueCoercion.CoerceProperties(tableEntry, properties);
+
+            // Same invariant as nodes: RelTables is the live read model in both modes.
+            if (!_database.RelTables.TryGetValue(tableName, out var table))
+            {
+                table = new Main.RelTableData();
+                _database.BindTablePersistenceSurface(tableName, table);
+                _database.RelTables[tableName] = table;
+            }
+            table.Upsert(context.Transaction, relId, properties);
+
+            _database.GraphLog.AppendRel(tableName, fromId, toId, properties);
+
+            // Bind relationship variable to context so downstream operators see it
+            if (!string.IsNullOrEmpty(rel.VariableName))
+            {
+                context.CurrentVariableIds ??= new Dictionary<string, object>();
+                context.CurrentVariableProperties ??= new Dictionary<string, Dictionary<string, object>>();
+                context.CurrentVariableIds[rel.VariableName] = relId;
+                context.CurrentVariableProperties[rel.VariableName] = properties;
             }
         }
 
