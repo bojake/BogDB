@@ -397,15 +397,25 @@ public class AdversarialFindingTests
     }
 
     // ============================================================================================
-    // Domain D — data-loss on non-transactional DDL
+    // Domain D — non-transactional catalog DDL (WON'T FIX — documented limitation)
     // ============================================================================================
 
-    /// <summary>F18 (CONFIRMED) — ROLLBACK of a DROP TABLE does not restore the table; the rows and the
-    /// catalog entry are gone (the follow-up MATCH errors "table does not exist"). The review flagged
-    /// catalog DDL as non-transactional (no UndoRecordType.CATALOG_ENTRY registrations) and dissented
-    /// on whether that is intended — so this test may resolve to a documented limitation rather than a
-    /// fix, but the data-loss behavior is real either way.</summary>
-    [Fact]
+    /// <summary>
+    /// F18 (CONFIRMED, WON'T FIX) — ROLLBACK of a DROP TABLE does not restore the table: the rows and the
+    /// catalog entry are gone and the follow-up MATCH errors "table does not exist". The data loss is real,
+    /// but it is a facet of a deliberate design point, not a stray bug — BogDB's catalog DDL (CREATE / ALTER
+    /// / DROP TABLE, index creation) is uniformly NON-TRANSACTIONAL: it mutates the catalog immediately and
+    /// registers no undo (there are zero UndoRecordType.CATALOG_ENTRY registrations in the engine), so a
+    /// rollback that follows a DDL statement cannot reverse it. Making DROP alone roll back would leave the
+    /// DDL model self-inconsistent; the real remedy is transactional DDL across the board, which is its own
+    /// project and out of scope for the adversarial-hardening pass.
+    ///
+    /// DECISION (2026-07-24): we are NOT implementing transactional DDL. This test stays skipped as a
+    /// living record of that decision and of the exact behavior — callers must not wrap DDL in a
+    /// transaction they might roll back. Remove the Skip only if transactional DDL is taken on deliberately.
+    /// </summary>
+    [Fact(Skip = "By design: BogDB catalog DDL (CREATE/ALTER/DROP) is non-transactional; a rolled-back " +
+                 "DROP TABLE does not restore the table. Transactional DDL is a separate project, not planned.")]
     public void F18_RollbackDropTable_RestoresTableAndRows()
     {
         using var conn = Mem(out var db); using (db)
