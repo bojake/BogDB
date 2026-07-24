@@ -18,7 +18,12 @@ namespace BogDb.Tests.Storage;
 ///
 /// Regression: <c>GraphStore</c>'s reader recognized only types 1–4 and threw
 /// "Unknown graph log record type: 5" — so any graph log containing a MERGE'd relationship aborted
-/// recovery, while its rel enumeration silently dropped the edge.
+/// recovery, while its rel enumeration silently dropped the edge. The log now has one shared parser
+/// (<c>GraphLogFormat</c>); <see cref="EveryDefinedRecordType_RoundTripsAndApplies"/> is the guard that
+/// catches the same class of drift for any record type added later.
+///
+/// The byte layout below is written out by hand on purpose: it is an independent oracle for the
+/// on-disk format, so a change to <c>GraphLogFormat.WriteRecord</c> cannot quietly redefine it.
 /// </summary>
 public class GraphLogRecordTypeTests
 {
@@ -83,6 +88,64 @@ public class GraphLogRecordTypeTests
             Assert.Equal(9L, Convert.ToInt64(rels[0].Value["w"]));
         }
         finally { TryDelete(dir); }
+    }
+
+    /// <summary>
+    /// Every record type the enum defines must survive write → read → apply. This is the anti-drift
+    /// guard: adding a member to <c>GraphLogRecordType</c> without giving it shape rules
+    /// (<c>HasSecondId</c>/<c>HasProperties</c>) or an apply rule fails here rather than at a user's
+    /// recovery. The exact-consumption assert is what catches a wrong shape — a record that reads too
+    /// few or too many bytes desyncs everything after it.
+    /// </summary>
+    [Fact]
+    public void EveryDefinedRecordType_RoundTripsAndApplies()
+    {
+        foreach (var type in Enum.GetValues<GraphLogRecordType>())
+        {
+            var props = new Dictionary<string, object> { ["p"] = 42L };
+
+            using var ms = new MemoryStream();
+            using (var w = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
+                GraphLogFormat.WriteRecord(w, type, "T", 1L, 2L, props);
+
+            ms.Position = 0;
+            using var r = new BinaryReader(ms, Encoding.UTF8, leaveOpen: true);
+            Assert.True(GraphLogFormat.TryReadRecord(r, out var record), $"{type} did not read back");
+
+            Assert.Equal(type, record.Type);
+            Assert.Equal("T", record.TableName);
+            Assert.Equal(1L, Convert.ToInt64(record.Id));
+            Assert.Equal(ms.Length, ms.Position);   // consumed exactly its own bytes — no desync
+
+            if (GraphLogFormat.HasSecondId(type))
+                Assert.Equal(2L, Convert.ToInt64(record.Id2));
+            else
+                Assert.Null(record.Id2);
+
+            if (GraphLogFormat.HasProperties(type))
+                Assert.Equal(42L, Convert.ToInt64(record.Properties["p"]));
+
+            // Must have an apply rule — GraphLogFormat.Apply throws for a type it does not handle.
+            GraphLogFormat.Apply(record,
+                new Dictionary<string, NodeTableData>(),
+                new Dictionary<string, RelTableData>());
+        }
+    }
+
+    [Fact]
+    public void UnknownRecordType_ThrowsRatherThanMisparsingTheRest()
+    {
+        using var ms = new MemoryStream();
+        using (var w = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
+        {
+            w.Write((byte)99);
+            w.Write("T");
+            GraphDataSerializer.WriteValue(w, 1L);
+        }
+
+        ms.Position = 0;
+        using var r = new BinaryReader(ms, Encoding.UTF8, leaveOpen: true);
+        Assert.Throws<InvalidDataException>(() => GraphLogFormat.TryReadRecord(r, out _));
     }
 
     private static void TryDelete(string dir)
