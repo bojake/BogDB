@@ -75,6 +75,7 @@ internal sealed class RowUndoReplayHandler : IRawUndoReplayTarget
 
         var properties = BuildVisibleProperties(context.CommitVersion, rowIndex);
         CommitColumnSnapshot(rowIndex, properties, context.CommitVersion);
+        _host.ReplaceCommittedRow(rowIndex, properties);
     }
 
     private void RollbackInsertedRow(UndoReplayContext context, int rowIndex)
