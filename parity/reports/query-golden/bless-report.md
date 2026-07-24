@@ -1,5 +1,5 @@
 ﻿# Golden Bless Report
-Blessed at: 2026-05-11T01:22:08.7803120Z
+Blessed at: 2026-07-24T14:02:03.3127820Z
 
 ## corpus-basic.cypher
 - Queries: 8
@@ -203,7 +203,7 @@ Blessed at: 2026-05-11T01:22:08.7803120Z
 
 ## corpus-tck.cypher
 - Queries: 6
-- New: 0, Changed: 0
+- New: 0, Changed: 1
 
 ## corpus-user-defined-types.cypher
 - Queries: 2

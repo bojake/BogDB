@@ -25,8 +25,17 @@ public sealed class PhysicalAggregate : PhysicalOperator
 
     // ── State machine ──────────────────────────────────────────────────────────
     private bool _exhausted;          // child has been drained
-    private List<object?[]>? _groups; // materialized output rows (keyed mode)
+    private List<AggregateRow>? _groups; // materialized output rows (keyed mode)
     private int _groupCursor;         // next group row to emit
+
+    // One emitted group: its projection row plus the variable bindings for any GROUP-KEY that is a node
+    // or relationship variable (e.g. `a` in `WITH a, count(*)`). Those variables stay in scope after the
+    // aggregation and must be restored so a following clause — a MATCH (a)-[:R]->(b), a RETURN a.name —
+    // can still resolve them. A global aggregate (no keys) carries nothing.
+    private readonly record struct AggregateRow(
+        object?[] Row,
+        Dictionary<string, object>? CarriedIds,
+        Dictionary<string, Dictionary<string, object>>? CarriedProps);
 
     public PhysicalAggregate(
         IReadOnlyList<BoundProjectionItem> allItems,
@@ -59,21 +68,23 @@ public sealed class PhysicalAggregate : PhysicalOperator
 
             _exhausted = true;
             _groupCursor = 0;
-
-            // After draining the child, individual node-scan context is no longer valid.
-            // Clear it so downstream operators (e.g. PhysicalProjection) use CurrentScalarBindings
-            // for property lookups rather than the stale last-scanned node's state.
-            context.CurrentVariableProperties = null;
-            context.CurrentNodeProperties     = null;
-            context.CurrentNodeId             = null;
-            context.CurrentVariableIds        = null;
         }
 
         if (_groupCursor >= _groups!.Count)
             return false;
 
-        var row = _groups[_groupCursor++];
+        var group = _groups[_groupCursor++];
+        var row = group.Row;
         context.CurrentProjectionRow = row;
+
+        // Re-establish this group's scope. The last-scanned node's transient state is stale after a full
+        // drain, but the group-key node/rel variables remain in scope and are restored here so a following
+        // clause can resolve them; anything else (including a global aggregate) resets to null so downstream
+        // operators fall back to CurrentScalarBindings rather than a stale last-scanned node.
+        context.CurrentNodeProperties = null;
+        context.CurrentNodeId         = null;
+        context.CurrentVariableIds        = group.CarriedIds;
+        context.CurrentVariableProperties = group.CarriedProps;
 
         // Populate AggregateValues (for ORDER BY aggregate sort keys) and
         // CurrentScalarBindings (for WHERE-on-alias HAVING patterns) from each emitted row.
@@ -105,18 +116,19 @@ public sealed class PhysicalAggregate : PhysicalOperator
 
     // ── Global (non-grouped) aggregation ──────────────────────────────────────
 
-    private List<object?[]> BuildGlobalAggregate(ExecutionContext context)
+    private List<AggregateRow> BuildGlobalAggregate(ExecutionContext context)
     {
         var state = new GroupState(_items.Count);
         while (Children[0].GetNextTuple(context))
             AccumulateRow(context, state, _items);
 
-        return [FinalizeRow(state, _items)];
+        // A global aggregate has no group keys, so nothing stays bound.
+        return [new AggregateRow(FinalizeRow(state, _items), null, null)];
     }
 
     // ── Keyed (grouped) aggregation ───────────────────────────────────────────
 
-    private List<object?[]> BuildKeyedGroups(ExecutionContext context)
+    private List<AggregateRow> BuildKeyedGroups(ExecutionContext context)
     {
         // Ordered dict so groups come out in first-seen order (stable output)
         var groups      = new Dictionary<string, GroupState>();
@@ -150,12 +162,36 @@ public sealed class PhysicalAggregate : PhysicalOperator
                     if (!IsAggregate(_items[i].Expression, out _, out _))
                         state.LastVals[i] = keyVals[GetKeyIndex(i)];
                 }
+                // Capture the node/rel variable bindings for this group's keys from the first row that
+                // opened it, so they can be restored when the group is emitted.
+                CaptureCarriedBindings(context, state);
             }
 
             AccumulateRow(context, state, _items);
         }
 
-        return keyOrder.Select(k => FinalizeRow(groups[k], _items)).ToList();
+        return keyOrder
+            .Select(k => new AggregateRow(FinalizeRow(groups[k], _items), groups[k].CarriedIds, groups[k].CarriedProps))
+            .ToList();
+    }
+
+    // Records, for each group-key that is a node or relationship variable, its id and properties as bound
+    // on the row that first opened the group. Scalar keys (e.g. `WITH n.region`) live in scalar bindings,
+    // not CurrentVariableIds, so they are naturally skipped here.
+    private void CaptureCarriedBindings(ExecutionContext context, GroupState state)
+    {
+        foreach (var item in _keyItems)
+        {
+            if (item.Expression is not VariableExpression ve || string.IsNullOrEmpty(ve.VariableName))
+                continue;
+
+            var name = ve.VariableName;
+            if (context.CurrentVariableIds != null && context.CurrentVariableIds.TryGetValue(name, out var id))
+                (state.CarriedIds ??= new Dictionary<string, object>())[name] = id;
+            if (context.CurrentVariableProperties != null &&
+                context.CurrentVariableProperties.TryGetValue(name, out var props))
+                (state.CarriedProps ??= new Dictionary<string, Dictionary<string, object>>())[name] = props;
+        }
     }
 
     // ── Shared accumulation + finalization ────────────────────────────────────
@@ -324,6 +360,10 @@ public sealed class PhysicalAggregate : PhysicalOperator
         public object?[] LastVals;
         public HashSet<object?>?[] DistinctSeen;
         public List<object?>?[] CollectedLists;
+
+        // Node/rel variable bindings for this group's keys, restored when the group is emitted.
+        public Dictionary<string, object>? CarriedIds;
+        public Dictionary<string, Dictionary<string, object>>? CarriedProps;
 
         public GroupState(int n)
         {

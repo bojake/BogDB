@@ -88,6 +88,14 @@ public sealed class PhysicalMergeNode : PhysicalOperator
     {
         var properties = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
+        // Count the property keys the pattern names, even the ones that evaluate to null. Null values are
+        // dropped (BogDB stores an unset property as a typed null, so `MERGE (:P {id:2, nickname:NULL})`
+        // still creates id 2 with a null nickname). But if the pattern named keys and EVERY one is null,
+        // the effective match criteria is empty and MatchesProperties would bind the FIRST existing node
+        // vacuously — so `MERGE (n {email:null})` silently merges into an unrelated row. That case is an
+        // ill-defined merge on a null key and is rejected below.
+        var specifiedKeyCount = 0;
+
         if (_mergeNode.InlinePropertyBag != null)
         {
             var propertyBag = ExpressionExecutionHelper.Evaluate(_mergeNode.InlinePropertyBag, context);
@@ -96,6 +104,7 @@ public sealed class PhysicalMergeNode : PhysicalOperator
 
             foreach (var (key, value) in dict)
             {
+                specifiedKeyCount++;
                 var normalized = TypeCoercionHelper.Normalize(value);
                 if (normalized is not null)
                     properties[key] = normalized;
@@ -104,10 +113,14 @@ public sealed class PhysicalMergeNode : PhysicalOperator
 
         foreach (var (key, expression) in _mergeNode.InlineProperties)
         {
+            specifiedKeyCount++;
             var normalized = TypeCoercionHelper.Normalize(ExpressionExecutionHelper.Evaluate(expression, context));
             if (normalized is not null)
                 properties[key] = normalized;
         }
+
+        if (specifiedKeyCount > 0 && properties.Count == 0)
+            throw new InvalidOperationException("Cannot merge node using a null value for every specified property.");
 
         return properties;
     }

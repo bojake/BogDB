@@ -32,23 +32,44 @@ public sealed class PhysicalUnwind : PhysicalOperator
 
     public override bool GetNextTuple(ExecutionContext context)
     {
-        if (!_initialized)
+        // UNWIND is a flat-map: for every input row it emits one row per list element, keeping that
+        // input row's bindings in context. When it follows a MATCH (Children[0] != null) the previous
+        // code never pulled the child — it evaluated its list once and streamed it as a lone source, so
+        // `MATCH (p) UNWIND [...] AS k` silently dropped the MATCH (p was never bound). With no child
+        // (a bare `UNWIND [list] AS k`) UNWIND is its own single source and runs exactly once.
+        var hasChild = Children.Count > 0;
+
+        while (true)
         {
-            // Evaluate the collection expression once to get the list
-            var val = ExpressionExecutionHelper.Evaluate(_collectionExpression, context);
-            _list = ExtractList(val);
-            _index = 0;
-            _initialized = true;
+            if (_list == null || _index >= _list.Count)
+            {
+                if (hasChild)
+                {
+                    // Advance to the next input row; its bindings remain in context and the collection
+                    // expression is re-evaluated against them (it may reference the row, e.g. p.tags).
+                    if (!Children[0].GetNextTuple(context))
+                        return false;
+                }
+                else if (_initialized)
+                {
+                    return false;   // bare UNWIND — the single list has been consumed
+                }
+
+                var val = ExpressionExecutionHelper.Evaluate(_collectionExpression, context);
+                _list = ExtractList(val);
+                _index = 0;
+                _initialized = true;
+
+                if (_list.Count == 0)
+                    continue;       // an empty list produces no rows for this input row (UNWIND [] drops it)
+            }
+
+            // Expose the current element as a scalar binding for the alias variable
+            context.CurrentScalarBindings ??= new Dictionary<string, object?>(StringComparer.Ordinal);
+            context.CurrentScalarBindings[_alias] = TypeCoercionHelper.Normalize(_list[_index]);
+            _index++;
+            return true;
         }
-
-        if (_list == null || _index >= _list.Count)
-            return false;
-
-        // Expose the current element as a scalar binding for the alias variable
-        context.CurrentScalarBindings ??= new Dictionary<string, object?>(StringComparer.Ordinal);
-        context.CurrentScalarBindings[_alias] = TypeCoercionHelper.Normalize(_list[_index]);
-        _index++;
-        return true;
     }
 
     private static List<object?> ExtractList(object? val)
