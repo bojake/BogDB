@@ -1574,6 +1574,17 @@ public sealed class BogConnection : IDisposable
 
     public void Dispose()
     {
+        // Roll back any transaction still open at dispose time. Without this, disposing a connection with
+        // an uncommitted write transaction — e.g. an exception escaping a `using` block — leaves the
+        // transaction registered forever: the single-writer slot is never released and every later write on
+        // any connection fails "Only one write transaction". SqlConnection/SQLite roll back on dispose the
+        // same way. Best-effort — Dispose must not throw.
+        if ((_activeTransaction ?? ClientContext.ActiveTransaction) != null)
+        {
+            try { Rollback(); }
+            catch { /* releasing the slot is best-effort; Dispose cannot propagate an exception */ }
+        }
+
         _activeTransaction = null;
         ClientContext.Dispose();
     }

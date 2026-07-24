@@ -55,23 +55,23 @@ internal sealed class GraphStore
                 using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
                 while (stream.Position < stream.Length)
                 {
-                    if (!TryReadLogRecord(reader, out var recordType, out var currentTableName, out var id, out _, out var props))
+                    if (!GraphLogFormat.TryReadRecord(reader, out var record))
                     {
                         yield break;
                     }
 
-                    if (!string.Equals(currentTableName, tableName, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(record.TableName, tableName, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (recordType == 1)
+                    if (record.Type == GraphLogRecordType.NodeUpsert)
                     {
-                        if (seenIds.Add(id))
-                            orderedIds.Add(id);
-                        propertiesById[id] = props;
+                        if (seenIds.Add(record.Id))
+                            orderedIds.Add(record.Id);
+                        propertiesById[record.Id] = record.Properties;
                     }
-                    else if (recordType == 3)
+                    else if (record.Type == GraphLogRecordType.NodeDelete)
                     {
-                        propertiesById.Remove(id);
+                        propertiesById.Remove(record.Id);
                     }
                 }
             }
@@ -117,25 +117,26 @@ internal sealed class GraphStore
                 using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
                 while (stream.Position < stream.Length)
                 {
-                    if (!TryReadLogRecord(reader, out var recordType, out var currentTableName, out var id, out var id2, out var props))
+                    if (!GraphLogFormat.TryReadRecord(reader, out var record))
                     {
                         yield break;
                     }
 
-                    if (!string.Equals(currentTableName, tableName, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(record.TableName, tableName, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (recordType == 2)
+                    // RelInsert (from MERGE) surfaces the same edge as RelUpsert here — this enumeration
+                    // is keyed by EdgeKey, so both register the edge with its latest properties.
+                    if (record.Type is GraphLogRecordType.RelUpsert or GraphLogRecordType.RelInsert)
                     {
-                        var edge = new EdgeKey(id, id2!);
+                        var edge = record.EdgeKey;
                         if (seenEdges.Add(edge))
                             orderedEdges.Add(edge);
-                        propertiesByEdge[edge] = props;
+                        propertiesByEdge[edge] = record.Properties;
                     }
-                    else if (recordType == 4)
+                    else if (record.Type == GraphLogRecordType.RelDelete)
                     {
-                        var edge = new EdgeKey(id, id2!);
-                        propertiesByEdge.Remove(edge);
+                        propertiesByEdge.Remove(record.EdgeKey);
                     }
                 }
             }
@@ -197,206 +198,16 @@ internal sealed class GraphStore
         ColumnarTableSerializer.WriteSnapshot(outputPath, nodeTables, relTables);
     }
 
-    private static void ReadSnapshot(BinaryReader reader,
-        Dictionary<string, NodeTableData> nodeTables,
-        Dictionary<string, RelTableData> relTables)
-    {
-        var nodeTableCount = reader.ReadInt32();
-        for (var i = 0; i < nodeTableCount; i++)
-        {
-            var tableName = reader.ReadString();
-            var rowCount = reader.ReadInt32();
-            var table = new NodeTableData();
-            for (var row = 0; row < rowCount; row++)
-            {
-                var id = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                table.Upsert(id, GraphDataSerializer.ReadProperties(reader));
-            }
-            nodeTables[tableName] = table;
-        }
-
-        var relTableCount = reader.ReadInt32();
-        for (var i = 0; i < relTableCount; i++)
-        {
-            var tableName = reader.ReadString();
-            var rowCount = reader.ReadInt32();
-            var table = new RelTableData();
-            for (var row = 0; row < rowCount; row++)
-            {
-                var from = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                var to = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                table.Insert(new EdgeKey(from, to), GraphDataSerializer.ReadProperties(reader));
-            }
-            relTables[tableName] = table;
-        }
-    }
-
     private static void ApplyLog(BinaryReader reader,
         Dictionary<string, NodeTableData> nodeTables,
         Dictionary<string, RelTableData> relTables)
     {
         while (reader.BaseStream.Position < reader.BaseStream.Length)
         {
-            if (!TryReadLogRecord(reader, out var recordType, out var tableName, out var id, out var id2, out var props))
-            {
+            if (!GraphLogFormat.TryReadRecord(reader, out var record))
                 return;
-            }
 
-            if (recordType == 1)
-            {
-                if (!nodeTables.TryGetValue(tableName, out var table))
-                {
-                    table = new NodeTableData();
-                    nodeTables[tableName] = table;
-                }
-                table.Upsert(id, props);
-            }
-            else if (recordType == 3)
-            {
-                if (nodeTables.TryGetValue(tableName, out var table))
-                    table.Remove(id);
-            }
-            else if (recordType == 2)
-            {
-                if (!relTables.TryGetValue(tableName, out var table))
-                {
-                    table = new RelTableData();
-                    relTables[tableName] = table;
-                }
-                var key = new EdgeKey(id, id2!);
-                table.Upsert(key, props);
-            }
-            else if (recordType == 5)
-            {
-                if (!relTables.TryGetValue(tableName, out var table))
-                {
-                    table = new RelTableData();
-                    relTables[tableName] = table;
-                }
-                var key = new EdgeKey(id, id2!);
-                table.Insert(key, props);
-            }
-            else if (recordType == 4)
-            {
-                if (relTables.TryGetValue(tableName, out var table))
-                {
-                    var key = new EdgeKey(id, id2!);
-                    table.Remove(key);
-                }
-            }
-        }
-    }
-
-    private static void WriteSnapshot(BinaryWriter writer,
-        Dictionary<string, NodeTableData> nodeTables,
-        Dictionary<string, RelTableData> relTables)
-    {
-        writer.Write(nodeTables.Count);
-        foreach (var (tableName, tableData) in nodeTables)
-        {
-            writer.Write(tableName);
-            writer.Write(tableData.Count);
-            foreach (var (id, properties) in tableData.EnumerateRows())
-            {
-                GraphDataSerializer.WriteValue(writer, id);
-                GraphDataSerializer.WriteProperties(writer, properties);
-            }
-        }
-
-        writer.Write(relTables.Count);
-        foreach (var (tableName, tableData) in relTables)
-        {
-            writer.Write(tableName);
-            writer.Write(tableData.Count);
-            foreach (var (edgeKey, properties) in tableData.EnumerateRows())
-            {
-                GraphDataSerializer.WriteValue(writer, edgeKey.From);
-                GraphDataSerializer.WriteValue(writer, edgeKey.To);
-                GraphDataSerializer.WriteProperties(writer, properties);
-            }
-        }
-    }
-
-    private static bool IsRemainingZero(BinaryReader reader)
-    {
-        var stream = reader.BaseStream;
-        var buffer = new byte[4096];
-        int read;
-        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            for (var i = 0; i < read; i++)
-            {
-                if (buffer[i] != 0)
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static bool TryReadLogRecord(
-        BinaryReader reader,
-        out byte recordType,
-        out string tableName,
-        out object id,
-        out object? id2,
-        out Dictionary<string, object> props)
-    {
-        recordType = 0;
-        tableName = string.Empty;
-        id = string.Empty;
-        id2 = null;
-        props = new Dictionary<string, object>();
-
-        try
-        {
-            recordType = reader.ReadByte();
-        }
-        catch (EndOfStreamException)
-        {
-            return false;
-        }
-
-        if (recordType == 0)
-        {
-            // Treat zero record type as padding/EOF for resiliency.
-            // If the remainder is not all zeros we still stop to avoid
-            // attempting to parse corrupted records.
-            _ = IsRemainingZero(reader);
-            return false;
-        }
-
-        try
-        {
-            tableName = reader.ReadString();
-            id = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-            if (recordType == 1)
-            {
-                props = GraphDataSerializer.ReadProperties(reader);
-                return true;
-            }
-            if (recordType == 2)
-            {
-                id2 = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                props = GraphDataSerializer.ReadProperties(reader);
-                return true;
-            }
-            if (recordType == 3)
-            {
-                return true;
-            }
-            if (recordType == 4)
-            {
-                id2 = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                return true;
-            }
-
-            throw new InvalidDataException($"Unknown graph log record type: {recordType}");
-        }
-        catch (EndOfStreamException)
-        {
-            return false;
+            GraphLogFormat.Apply(record, nodeTables, relTables);
         }
     }
 }

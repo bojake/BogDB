@@ -137,6 +137,12 @@ public sealed class ExpandRel : PhysicalOperator
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    // Materializes a relationship enumeration into a private list before it is iterated, so a concurrent
+    // write to the underlying adjacency structure in the same statement cannot invalidate the iterator.
+    private static IEnumerator<KeyValuePair<Main.RelRowRef, Dictionary<string, object>>> Snapshot(
+        IEnumerable<KeyValuePair<Main.RelRowRef, Dictionary<string, object>>> rows)
+        => new List<KeyValuePair<Main.RelRowRef, Dictionary<string, object>>>(rows).GetEnumerator();
+
     private IEnumerator<KeyValuePair<Main.RelRowRef, Dictionary<string, object>>> OpenIterator(
         string relTableName,
         BogDb.Core.Transaction.Transaction tx)
@@ -154,26 +160,29 @@ public sealed class ExpandRel : PhysicalOperator
 
             if (boundSrcId != null)
             {
+                // Snapshot the adjacency rows before iterating: a write in the SAME statement — e.g.
+                // `MATCH (a)-[:R]->(b) MERGE (a)-[:R]->(c)` — inserts into the very adjacency list being
+                // walked, which throws "Collection was modified" on the next MoveNext. The unbound
+                // fallback below already materializes for this reason; the fast path must too.
                 if (_queryRel.Direction == ArrowDirection.LEFT)
                 {
                     // LEFT arrow: source is the dst in storage, so look up incoming to source
-                    return tbl.EnumerateIncomingRowsWithRefs(relTableName, boundSrcId, tx).GetEnumerator();
+                    return Snapshot(tbl.EnumerateIncomingRowsWithRefs(relTableName, boundSrcId, tx));
                 }
                 else if (_queryRel.Direction == ArrowDirection.RIGHT || !_doingReverseForCurrentTable)
                 {
                     // RIGHT arrow or first pass of BOTH: outgoing from source
-                    return tbl.EnumerateOutgoingRowsWithRefs(relTableName, boundSrcId, tx).GetEnumerator();
+                    return Snapshot(tbl.EnumerateOutgoingRowsWithRefs(relTableName, boundSrcId, tx));
                 }
                 else
                 {
                     // Reverse pass of BOTH: incoming to source
-                    return tbl.EnumerateIncomingRowsWithRefs(relTableName, boundSrcId, tx).GetEnumerator();
+                    return Snapshot(tbl.EnumerateIncomingRowsWithRefs(relTableName, boundSrcId, tx));
                 }
             }
 
             // ── Fallback: full table scan (unbound source, cartesian product) ──
-            return new List<KeyValuePair<Main.RelRowRef, Dictionary<string, object>>>(
-                tbl.EnumerateRowsWithRefs(relTableName, tx)).GetEnumerator();
+            return Snapshot(tbl.EnumerateRowsWithRefs(relTableName, tx));
         }
 
         // Fall back to GraphStore if not in in-memory dict

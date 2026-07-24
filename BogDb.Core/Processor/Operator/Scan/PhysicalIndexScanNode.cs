@@ -83,7 +83,7 @@ public sealed class PhysicalIndexScanNode : PhysicalOperator
                 if (nodeProps is null)
                     continue;
                 var normalized = _database.NormalizeNodePropertiesForRead(_tableName, nodeProps);
-                if (!_isPrefixScan && !MatchesLookup(normalized, lookupKey))
+                if (!Matches(normalized, lookupKey))
                     continue;
                 props = normalized;
             }
@@ -94,7 +94,7 @@ public sealed class PhysicalIndexScanNode : PhysicalOperator
                 if (nodeProps is null)
                     continue;
                 var normalized = _database.NormalizeNodePropertiesForRead(_tableName, nodeProps);
-                if (!_isPrefixScan && !MatchesLookup(normalized, lookupKey))
+                if (!Matches(normalized, lookupKey))
                     continue;
                 props = normalized;
             }
@@ -148,7 +148,23 @@ public sealed class PhysicalIndexScanNode : PhysicalOperator
         return TypeCoercionHelper.Normalize(_lookupKey);
     }
 
-    private bool MatchesLookup(Dictionary<string, object> props, object lookupKey)
-        => props.TryGetValue(_propertyName, out var propertyValue) &&
-           StructuralValueComparer.AreEqual(propertyValue, lookupKey);
+    // Re-validate a candidate against the node's CURRENT property value. Index postings can outlive the
+    // value that produced them (a later write may point the offset elsewhere), so every emitted row is
+    // checked here — the equality path always did this; the prefix path used to skip it and so could
+    // return a row whose value no longer starts with the prefix.
+    private bool Matches(Dictionary<string, object> props, object lookupKey)
+    {
+        if (!props.TryGetValue(_propertyName, out var propertyValue) || propertyValue is null)
+            return false;
+
+        if (_isPrefixScan)
+        {
+            if (propertyValue is not string value)
+                return false;
+            var prefix = lookupKey as string ?? lookupKey.ToString() ?? "";
+            return value.StartsWith(prefix, System.StringComparison.Ordinal);
+        }
+
+        return StructuralValueComparer.AreEqual(propertyValue, lookupKey);
+    }
 }

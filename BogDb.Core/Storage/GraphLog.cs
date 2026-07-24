@@ -35,27 +35,27 @@ internal sealed class GraphLogWriter : IDisposable
 
     public void AppendNode(string tableName, object id, Dictionary<string, object> props)
     {
-        AppendRecord(1, tableName, id, null, props);
+        AppendRecord(GraphLogRecordType.NodeUpsert, tableName, id, null, props);
     }
 
     public void AppendNodeDelete(string tableName, object id)
     {
-        AppendRecord(3, tableName, id, null, props: null);
+        AppendRecord(GraphLogRecordType.NodeDelete, tableName, id, null, props: null);
     }
 
     public void AppendRel(string tableName, object fromId, object toId, Dictionary<string, object> props)
     {
-        AppendRecord(2, tableName, fromId, toId, props);
+        AppendRecord(GraphLogRecordType.RelUpsert, tableName, fromId, toId, props);
     }
 
     public void AppendRelInsert(string tableName, object fromId, object toId, Dictionary<string, object> props)
     {
-        AppendRecord(5, tableName, fromId, toId, props);
+        AppendRecord(GraphLogRecordType.RelInsert, tableName, fromId, toId, props);
     }
 
     public void AppendRelDelete(string tableName, object fromId, object toId)
     {
-        AppendRecord(4, tableName, fromId, toId, props: null);
+        AppendRecord(GraphLogRecordType.RelDelete, tableName, fromId, toId, props: null);
     }
 
     public void Clear()
@@ -92,7 +92,7 @@ internal sealed class GraphLogWriter : IDisposable
         }
     }
 
-    private void AppendRecord(byte recordType, string tableName, object id, object? id2, Dictionary<string, object>? props)
+    private void AppendRecord(GraphLogRecordType recordType, string tableName, object id, object? id2, Dictionary<string, object>? props)
     {
         if (_inMemory || _readOnly || _stream == null || _writer == null) return;
 
@@ -100,17 +100,7 @@ internal sealed class GraphLogWriter : IDisposable
         {
             var startOffset = _stream.Position;
 
-            _writer.Write(recordType);
-            _writer.Write(tableName);
-            GraphDataSerializer.WriteValue(_writer, id);
-            if (recordType is 2 or 4 or 5)
-            {
-                GraphDataSerializer.WriteValue(_writer, id2);
-            }
-            if (recordType is 1 or 2 or 5)
-            {
-                GraphDataSerializer.WriteProperties(_writer, props ?? new Dictionary<string, object>());
-            }
+            GraphLogFormat.WriteRecord(_writer, recordType, tableName, id, id2, props);
             _writer.Flush();
             _stream.Flush(true);
 
@@ -173,103 +163,10 @@ internal static class GraphLogReader
         using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
         while (stream.Position < readLimit)
         {
-            byte recordType;
-            try
-            {
-                recordType = reader.ReadByte();
-            }
-            catch (EndOfStreamException)
-            {
+            if (!GraphLogFormat.TryReadRecord(reader, out var record))
                 return;
-            }
 
-            if (recordType == 0)
-            {
-                // Treat zero record type as padding/EOF for resiliency.
-                _ = IsRemainingZero(reader);
-                return;
-            }
-
-            try
-            {
-                var tableName = reader.ReadString();
-                var id = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-
-                if (recordType == 1)
-                {
-                    var props = GraphDataSerializer.ReadProperties(reader);
-                    if (!nodeTables.TryGetValue(tableName, out var table))
-                    {
-                        table = new NodeTableData();
-                        nodeTables[tableName] = table;
-                    }
-                    table.Upsert(id, props);
-                }
-                else if (recordType == 2)
-                {
-                    var id2 = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                    var props = GraphDataSerializer.ReadProperties(reader);
-                    if (!relTables.TryGetValue(tableName, out var table))
-                    {
-                        table = new RelTableData();
-                        relTables[tableName] = table;
-                    }
-                    var key = new EdgeKey(id, id2);
-                    table.Upsert(key, props);
-                }
-                else if (recordType == 3)
-                {
-                    if (nodeTables.TryGetValue(tableName, out var table))
-                        table.Remove(id);
-                }
-                else if (recordType == 4)
-                {
-                    var id2 = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                    if (relTables.TryGetValue(tableName, out var table))
-                    {
-                        var key = new EdgeKey(id, id2);
-                        table.Remove(key);
-                    }
-                }
-                else if (recordType == 5)
-                {
-                    var id2 = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
-                    var props = GraphDataSerializer.ReadProperties(reader);
-                    if (!relTables.TryGetValue(tableName, out var table))
-                    {
-                        table = new RelTableData();
-                        relTables[tableName] = table;
-                    }
-                    var key = new EdgeKey(id, id2);
-                    table.Insert(key, props);
-                }
-                else
-                {
-                    throw new InvalidDataException($"Unknown graph log record type: {recordType}");
-                }
-            }
-            catch (EndOfStreamException)
-            {
-                return;
-            }
+            GraphLogFormat.Apply(record, nodeTables, relTables);
         }
-    }
-
-    private static bool IsRemainingZero(BinaryReader reader)
-    {
-        var stream = reader.BaseStream;
-        var buffer = new byte[4096];
-        int read;
-        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            for (var i = 0; i < read; i++)
-            {
-                if (buffer[i] != 0)
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }

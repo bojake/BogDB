@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using BogDb.Core.Binder;
 using BogDb.Core.Common;
 
@@ -25,8 +24,17 @@ public sealed class PhysicalAggregate : PhysicalOperator
 
     // ── State machine ──────────────────────────────────────────────────────────
     private bool _exhausted;          // child has been drained
-    private List<object?[]>? _groups; // materialized output rows (keyed mode)
+    private List<AggregateRow>? _groups; // materialized output rows (keyed mode)
     private int _groupCursor;         // next group row to emit
+
+    // One emitted group: its projection row plus the variable bindings for any GROUP-KEY that is a node
+    // or relationship variable (e.g. `a` in `WITH a, count(*)`). Those variables stay in scope after the
+    // aggregation and must be restored so a following clause — a MATCH (a)-[:R]->(b), a RETURN a.name —
+    // can still resolve them. A global aggregate (no keys) carries nothing.
+    private readonly record struct AggregateRow(
+        object?[] Row,
+        Dictionary<string, object>? CarriedIds,
+        Dictionary<string, Dictionary<string, object>>? CarriedProps);
 
     public PhysicalAggregate(
         IReadOnlyList<BoundProjectionItem> allItems,
@@ -59,21 +67,23 @@ public sealed class PhysicalAggregate : PhysicalOperator
 
             _exhausted = true;
             _groupCursor = 0;
-
-            // After draining the child, individual node-scan context is no longer valid.
-            // Clear it so downstream operators (e.g. PhysicalProjection) use CurrentScalarBindings
-            // for property lookups rather than the stale last-scanned node's state.
-            context.CurrentVariableProperties = null;
-            context.CurrentNodeProperties     = null;
-            context.CurrentNodeId             = null;
-            context.CurrentVariableIds        = null;
         }
 
         if (_groupCursor >= _groups!.Count)
             return false;
 
-        var row = _groups[_groupCursor++];
+        var group = _groups[_groupCursor++];
+        var row = group.Row;
         context.CurrentProjectionRow = row;
+
+        // Re-establish this group's scope. The last-scanned node's transient state is stale after a full
+        // drain, but the group-key node/rel variables remain in scope and are restored here so a following
+        // clause can resolve them; anything else (including a global aggregate) resets to null so downstream
+        // operators fall back to CurrentScalarBindings rather than a stale last-scanned node.
+        context.CurrentNodeProperties = null;
+        context.CurrentNodeId         = null;
+        context.CurrentVariableIds        = group.CarriedIds;
+        context.CurrentVariableProperties = group.CarriedProps;
 
         // Populate AggregateValues (for ORDER BY aggregate sort keys) and
         // CurrentScalarBindings (for WHERE-on-alias HAVING patterns) from each emitted row.
@@ -105,57 +115,116 @@ public sealed class PhysicalAggregate : PhysicalOperator
 
     // ── Global (non-grouped) aggregation ──────────────────────────────────────
 
-    private List<object?[]> BuildGlobalAggregate(ExecutionContext context)
+    private List<AggregateRow> BuildGlobalAggregate(ExecutionContext context)
     {
         var state = new GroupState(_items.Count);
         while (Children[0].GetNextTuple(context))
             AccumulateRow(context, state, _items);
 
-        return [FinalizeRow(state, _items)];
+        // A global aggregate has no group keys, so nothing stays bound.
+        return [new AggregateRow(FinalizeRow(state, _items), null, null)];
     }
 
     // ── Keyed (grouped) aggregation ───────────────────────────────────────────
 
-    private List<object?[]> BuildKeyedGroups(ExecutionContext context)
+    private List<AggregateRow> BuildKeyedGroups(ExecutionContext context)
     {
         // Ordered dict so groups come out in first-seen order (stable output)
-        var groups      = new Dictionary<string, GroupState>();
-        var keyOrder    = new List<string>(); // insertion order
-        var keyValueMap = new Dictionary<string, object?[]>(); // key → evaluated key values
+        var groups   = new Dictionary<GroupKey, GroupState>();
+        var keyOrder = new List<GroupKey>(); // insertion order
 
         while (Children[0].GetNextTuple(context))
         {
-            // Evaluate each group-key expression and build the composite key string
+            // Evaluate each group-key expression into a composite key with structural (Cypher) equality —
+            // not a string form, which collapsed type-distinct keys such as long 1 and string '1'.
             var keyVals = new object?[_keyItems.Count];
-            var kb = new StringBuilder();
             for (int k = 0; k < _keyItems.Count; k++)
-            {
-                var val = TypeCoercionHelper.Normalize(
+                keyVals[k] = TypeCoercionHelper.Normalize(
                     ExpressionExecutionHelper.Evaluate(_keyItems[k].Expression, context));
-                keyVals[k] = val;
-                if (k > 0) kb.Append('\x01'); // unit-separator — unlikely in data
-                kb.Append(TypeCoercionHelper.ToBogDbString(val) ?? "\x00");
-            }
-            var keyStr = kb.ToString();
+            var key = new GroupKey(keyVals);
 
-            if (!groups.TryGetValue(keyStr, out var state))
+            if (!groups.TryGetValue(key, out var state))
             {
                 state = new GroupState(_items.Count);
-                groups[keyStr] = state;
-                keyOrder.Add(keyStr);
-                keyValueMap[keyStr] = keyVals;
+                groups[key] = state;
+                keyOrder.Add(key);
                 // Seed the key slots of the state with the key values
                 for (int i = 0; i < _items.Count; i++)
                 {
                     if (!IsAggregate(_items[i].Expression, out _, out _))
                         state.LastVals[i] = keyVals[GetKeyIndex(i)];
                 }
+                // Capture the node/rel variable bindings for this group's keys from the first row that
+                // opened it, so they can be restored when the group is emitted.
+                CaptureCarriedBindings(context, state);
             }
 
             AccumulateRow(context, state, _items);
         }
 
-        return keyOrder.Select(k => FinalizeRow(groups[k], _items)).ToList();
+        return keyOrder
+            .Select(k => new AggregateRow(FinalizeRow(groups[k], _items), groups[k].CarriedIds, groups[k].CarriedProps))
+            .ToList();
+    }
+
+    // Composite GROUP BY key with Cypher grouping semantics: equal values group together — numbers across
+    // numeric types (1 and 1.0), and two nulls — while values that merely share a string form do not, so a
+    // long 1 and a string '1' fall in different groups. Uses the same StructuralValueComparer that
+    // count(DISTINCT) uses, so grouping and distinct can no longer contradict each other.
+    private readonly struct GroupKey : IEquatable<GroupKey>
+    {
+        private readonly object?[] _values;
+
+        public GroupKey(object?[] values) => _values = values;
+
+        public bool Equals(GroupKey other)
+        {
+            if (_values.Length != other._values.Length)
+                return false;
+            for (int i = 0; i < _values.Length; i++)
+            {
+                var a = _values[i];
+                var b = other._values[i];
+                if (a is null || b is null)
+                {
+                    if (a is null && b is null)
+                        continue;   // two nulls group together
+                    return false;
+                }
+                if (!StructuralValueComparer.AreEqual(a, b))
+                    return false;
+            }
+            return true;
+        }
+
+        public override bool Equals(object? obj) => obj is GroupKey other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            foreach (var value in _values)
+                hash.Add(StructuralValueComparer.GetStructuralHashCode(value));
+            return hash.ToHashCode();
+        }
+    }
+
+    // Records, for each group-key that is a node or relationship variable, its id and properties as bound
+    // on the row that first opened the group. Scalar keys (e.g. `WITH n.region`) live in scalar bindings,
+    // not CurrentVariableIds, so they are naturally skipped here.
+    private void CaptureCarriedBindings(ExecutionContext context, GroupState state)
+    {
+        foreach (var item in _keyItems)
+        {
+            if (item.Expression is not VariableExpression ve || string.IsNullOrEmpty(ve.VariableName))
+                continue;
+
+            var name = ve.VariableName;
+            if (context.CurrentVariableIds != null && context.CurrentVariableIds.TryGetValue(name, out var id))
+                (state.CarriedIds ??= new Dictionary<string, object>())[name] = id;
+            if (context.CurrentVariableProperties != null &&
+                context.CurrentVariableProperties.TryGetValue(name, out var props))
+                (state.CarriedProps ??= new Dictionary<string, Dictionary<string, object>>())[name] = props;
+        }
     }
 
     // ── Shared accumulation + finalization ────────────────────────────────────
@@ -216,17 +285,36 @@ public sealed class PhysicalAggregate : PhysicalOperator
                 }
                 else if (argExpr != null)
                 {
-                    // Numeric aggregates: SUM / AVG / MIN / MAX
+                    // SUM / AVG / MIN / MAX
                     var raw  = ExpressionExecutionHelper.Evaluate(argExpr, context);
                     var norm = TypeCoercionHelper.Normalize(raw);
                     if (norm != null)
                     {
                         if (IsDistinctDuplicate(state, i, expr, norm))
                             continue;
-                        double dval = TypeCoercionHelper.ToDouble(norm);
-                        if (nLower is "sum" or "avg") state.Sums[i] += dval;
-                        if (nLower == "min") state.Mins[i] = Math.Min(state.Mins[i], dval);
-                        if (nLower == "max") state.Maxes[i] = Math.Max(state.Maxes[i], dval);
+
+                        if (nLower == "min")
+                        {
+                            // MIN/MAX are defined for any orderable type (strings, temporals, numbers) —
+                            // use the same total order ORDER BY uses instead of forcing the value through
+                            // ToDouble, which threw a FormatException on a STRING or temporal column.
+                            if (state.MinVals[i] is null ||
+                                StructuralValueOrderComparer.CompareValues(norm, state.MinVals[i]) < 0)
+                                state.MinVals[i] = norm;
+                        }
+                        else if (nLower == "max")
+                        {
+                            if (state.MaxVals[i] is null ||
+                                StructuralValueOrderComparer.CompareValues(norm, state.MaxVals[i]) > 0)
+                                state.MaxVals[i] = norm;
+                        }
+                        else // sum / avg — numeric only
+                        {
+                            if (!TryToNumeric(norm, out var dval))
+                                throw new InvalidOperationException(
+                                    $"{nLower}() requires numeric values but received '{norm}' of type {norm.GetType().Name}.");
+                            state.Sums[i] += dval;
+                        }
                         state.Rows[i]++;
                         state.LastVals[i] = norm;
                     }
@@ -254,8 +342,8 @@ public sealed class PhysicalAggregate : PhysicalOperator
                     "count_if" => (object?)state.Counts[i],
                     "sum"  => state.Rows[i] > 0 ? (object?)state.Sums[i]  : null,
                     "avg"  => state.Rows[i] > 0 ? (object?)(state.Sums[i] / state.Rows[i]) : null,
-                    "min"  => state.Rows[i] > 0 ? (object?)state.Mins[i]  : null,
-                    "max"  => state.Rows[i] > 0 ? (object?)state.Maxes[i] : null,
+                    "min"  => state.MinVals[i],
+                    "max"  => state.MaxVals[i],
                     "collect" => (object?)(state.CollectedLists[i] ?? new List<object?>()),
                     _      => (object?)state.Counts[i]
                 };
@@ -302,6 +390,32 @@ public sealed class PhysicalAggregate : PhysicalOperator
         return false;
     }
 
+    // Non-throwing numeric coercion for SUM/AVG. Mirrors TypeCoercionHelper.ToDouble (including numeric
+    // strings) but returns false instead of throwing, so a non-numeric value yields a clean aggregate
+    // error rather than an unhandled FormatException.
+    private static bool TryToNumeric(object value, out double result)
+    {
+        switch (value)
+        {
+            case double d: result = d; return true;
+            case float f: result = f; return true;
+            case long l: result = l; return true;
+            case int i: result = i; return true;
+            case short s: result = s; return true;
+            case byte b: result = b; return true;
+            case sbyte sb: result = sb; return true;
+            case ushort us: result = us; return true;
+            case uint ui: result = ui; return true;
+            case ulong ul: result = ul; return true;
+            case decimal dec: result = (double)dec; return true;
+            case bool bl: result = bl ? 1.0 : 0.0; return true;
+            case string str when double.TryParse(str, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var parsed):
+                result = parsed; return true;
+            default: result = 0; return false;
+        }
+    }
+
     private static bool IsDistinctDuplicate(GroupState state, int itemIndex, Expression expr, object? value)
     {
         if (expr is not BoundFunctionExpression bfe || !bfe.IsDistinct)
@@ -318,24 +432,29 @@ public sealed class PhysicalAggregate : PhysicalOperator
     {
         public long[]    Counts;
         public double[]  Sums;
-        public double[]  Mins;
-        public double[]  Maxes;
+        // MIN/MAX hold the winning VALUE (any orderable type), not a running double, so they work for
+        // strings and temporals and preserve the original type on output.
+        public object?[] MinVals;
+        public object?[] MaxVals;
         public long[]    Rows;
         public object?[] LastVals;
         public HashSet<object?>?[] DistinctSeen;
         public List<object?>?[] CollectedLists;
 
+        // Node/rel variable bindings for this group's keys, restored when the group is emitted.
+        public Dictionary<string, object>? CarriedIds;
+        public Dictionary<string, Dictionary<string, object>>? CarriedProps;
+
         public GroupState(int n)
         {
             Counts   = new long[n];
             Sums     = new double[n];
-            Mins     = new double[n];
-            Maxes    = new double[n];
+            MinVals  = new object?[n];
+            MaxVals  = new object?[n];
             Rows     = new long[n];
             LastVals = new object?[n];
             DistinctSeen = new HashSet<object?>?[n];
             CollectedLists = new List<object?>?[n];
-            for (int i = 0; i < n; i++) { Mins[i] = double.MaxValue; Maxes[i] = double.MinValue; }
         }
     }
 }

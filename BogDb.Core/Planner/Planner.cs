@@ -14,7 +14,12 @@ namespace BogDb.Core.Planner;
 /// </summary>
 public sealed class Planner
 {
-    private readonly record struct IndexLookupPredicate(string PropertyName, object LookupKey, bool IsPrefixScan = false);
+    // GroupId records how a predicate combines with the others: predicates sharing a GroupId are UNIONed
+    // (they came from one IN list or one OR-of-equalities), predicates with distinct GroupIds are
+    // INTERSECTed (they are separate AND conjuncts). Grouping by property name instead — as the planner
+    // once did — silently turned `p = 'a' AND p = 'c'` into `p = 'a' OR p = 'c'`, because two same-property
+    // AND conjuncts look identical to two IN alternatives once flattened.
+    private readonly record struct IndexLookupPredicate(string PropertyName, object LookupKey, bool IsPrefixScan = false, int GroupId = 0);
     private readonly Main.BogDatabase? _database;
     private int _markJoinCounter;
 
@@ -659,43 +664,49 @@ public sealed class Planner
         if (predicates.Count == 0)
             throw new InvalidOperationException("Indexed lookup plan requires at least one predicate.");
 
-        // Group predicates by property name. Same-property predicates come from IN
-        // decomposition and need UNION semantics (OR). Cross-property groups need
-        // intersection (AND, via ValueJoin).
-        var groupedByProperty = new Dictionary<string, List<IndexLookupPredicate>>(StringComparer.OrdinalIgnoreCase);
+        // Group predicates by GroupId. Members of a group came from ONE source that means UNION — an IN
+        // list, or an OR of equalities on the same property. Distinct groups are separate AND conjuncts
+        // and must INTERSECT (via ValueJoin), whether or not they share a property. Grouping by property
+        // instead unioned `p = 'a' AND p = 'c'` into `p = 'a' OR p = 'c'`. Preserve first-seen group order
+        // so plan shape stays deterministic.
+        var groupOrder = new List<int>();
+        var groupedByGroup = new Dictionary<int, List<IndexLookupPredicate>>();
         foreach (var pred in predicates)
         {
-            if (!groupedByProperty.TryGetValue(pred.PropertyName, out var list))
+            if (!groupedByGroup.TryGetValue(pred.GroupId, out var list))
             {
                 list = new List<IndexLookupPredicate>();
-                groupedByProperty[pred.PropertyName] = list;
+                groupedByGroup[pred.GroupId] = list;
+                groupOrder.Add(pred.GroupId);
             }
             list.Add(pred);
         }
 
         Operator.LogicalOperator? plan = null;
-        foreach (var (_, propertyPredicates) in groupedByProperty)
+        foreach (var groupId in groupOrder)
         {
-            // Build UNION of scans for same-property predicates (IN semantics)
+            var groupPredicates = groupedByGroup[groupId];
+
+            // Build UNION of scans within the group (IN / OR-of-equalities semantics)
             Operator.LogicalOperator current = new LogicalIndexScanNode(
                 tableName,
-                propertyPredicates[0].PropertyName,
-                propertyPredicates[0].LookupKey,
+                groupPredicates[0].PropertyName,
+                groupPredicates[0].LookupKey,
                 variableName,
-                propertyPredicates[0].IsPrefixScan);
+                groupPredicates[0].IsPrefixScan);
 
-            for (var i = 1; i < propertyPredicates.Count; i++)
+            for (var i = 1; i < groupPredicates.Count; i++)
             {
                 var nextScan = new LogicalIndexScanNode(
                     tableName,
-                    propertyPredicates[i].PropertyName,
-                    propertyPredicates[i].LookupKey,
+                    groupPredicates[i].PropertyName,
+                    groupPredicates[i].LookupKey,
                     variableName,
-                    propertyPredicates[i].IsPrefixScan);
+                    groupPredicates[i].IsPrefixScan);
                 current = new Operator.LogicalUnionAll(current, nextScan);
             }
 
-            // Intersect cross-property groups
+            // Intersect across groups (AND conjuncts)
             plan = plan == null
                 ? current
                 : new Operator.LogicalValueJoin(plan, current, new[] { variableName });
@@ -1481,9 +1492,9 @@ public sealed class Planner
 
         if (_database == null ||
             string.IsNullOrEmpty(queryNode.VariableName) ||
-            queryNode.TableNames.Count == 0 ||
-            queryNode.InlinePropertyBag != null ||
-            queryNode.InlineProperties.Count == 0)
+            queryNode.TableNames.Count != 1 ||   // a multi-label (:A|B) pattern cannot be answered by a
+            queryNode.InlinePropertyBag != null ||  // single-table index scan without dropping the other
+            queryNode.InlineProperties.Count == 0)  // labels' rows; fall back to a scan that honors all.
         {
             return false;
         }
@@ -1500,7 +1511,8 @@ public sealed class Planner
                         string.Equals(p.PropertyName, propertyName, StringComparison.OrdinalIgnoreCase) &&
                         StructuralValueComparer.AreEqual(p.LookupKey, lookupKey)))
                 {
-                    predicates.Add(new IndexLookupPredicate(propertyName, lookupKey));
+                    // Inline properties {a:1, b:2} are AND'd — each is its own group so they intersect.
+                    predicates.Add(new IndexLookupPredicate(propertyName, lookupKey, GroupId: predicates.Count));
                 }
                 continue;
             }
@@ -1625,6 +1637,13 @@ public sealed class Planner
         {
             return false;
         }
+
+        // A multi-label node pattern (:A|B) cannot be answered by the single-table index plan built
+        // below without silently dropping the other labels' rows. The multi-label case where every
+        // label is indexed is handled by the pattern-part path above (guarded by AllLabelsHaveIndex);
+        // anything reaching here with more than one label falls back to a full scan that honors them all.
+        if (queryNode.TableNames.Count > 1)
+            return false;
 
         if (!TryExtractIndexablePredicates(
                 queryNode,
@@ -2093,7 +2112,8 @@ public sealed class Planner
     {
         predicates = new List<IndexLookupPredicate>();
         residualPredicate = null;
-        CollectIndexablePredicates(queryNode, tableName, predicate, predicates, ref residualPredicate);
+        var groupSeq = 0;
+        CollectIndexablePredicates(queryNode, tableName, predicate, predicates, ref residualPredicate, ref groupSeq);
         return predicates.Count > 0;
     }
 
@@ -2102,35 +2122,39 @@ public sealed class Planner
         string tableName,
         Expression predicate,
         List<IndexLookupPredicate> predicates,
-        ref Expression? residualPredicate)
+        ref Expression? residualPredicate,
+        ref int groupSeq)
     {
         if (TrySimplifyPredicateBooleanNoise(predicate, out var simplifiedPredicate))
         {
-            CollectIndexablePredicates(queryNode, tableName, simplifiedPredicate, predicates, ref residualPredicate);
+            CollectIndexablePredicates(queryNode, tableName, simplifiedPredicate, predicates, ref residualPredicate, ref groupSeq);
             return;
         }
 
         if (TryMatchIndexableEquality(queryNode, tableName, predicate, out var propertyName, out var lookupKey))
         {
-            if (!predicates.Exists(p => p.PropertyName == propertyName && StructuralValueComparer.AreEqual(p.LookupKey, lookupKey)))
-                predicates.Add(new IndexLookupPredicate(propertyName, lookupKey));
+            // A standalone equality is its own AND conjunct — a fresh group, so two same-property
+            // equalities intersect (contradiction => no rows) instead of unioning.
+            predicates.Add(new IndexLookupPredicate(propertyName, lookupKey, GroupId: groupSeq++));
             return;
         }
 
         if (TryMatchIndexableInList(queryNode, tableName, predicate, out var inListPredicates))
         {
+            // All members of one IN list share a group and are UNIONed together.
+            var group = groupSeq++;
             foreach (var ilp in inListPredicates)
             {
-                if (!predicates.Exists(p => p.PropertyName == ilp.PropertyName && StructuralValueComparer.AreEqual(p.LookupKey, ilp.LookupKey)))
-                    predicates.Add(ilp);
+                if (!predicates.Exists(p => p.GroupId == group && p.PropertyName == ilp.PropertyName &&
+                                            StructuralValueComparer.AreEqual(p.LookupKey, ilp.LookupKey)))
+                    predicates.Add(ilp with { GroupId = group });
             }
             return;
         }
 
         if (TryMatchIndexableStartsWith(queryNode, tableName, predicate, out var swPropertyName, out var swPrefix))
         {
-            if (!predicates.Exists(p => p.PropertyName == swPropertyName && p.IsPrefixScan && StructuralValueComparer.AreEqual(p.LookupKey, swPrefix)))
-                predicates.Add(new IndexLookupPredicate(swPropertyName, swPrefix, IsPrefixScan: true));
+            predicates.Add(new IndexLookupPredicate(swPropertyName, swPrefix, IsPrefixScan: true, GroupId: groupSeq++));
             return;
         }
 
@@ -2138,22 +2162,25 @@ public sealed class Planner
             booleanExpr.ExpressionType == ExpressionType.AND &&
             booleanExpr.Right != null)
         {
-            CollectIndexablePredicates(queryNode, tableName, booleanExpr.Left, predicates, ref residualPredicate);
-            CollectIndexablePredicates(queryNode, tableName, booleanExpr.Right, predicates, ref residualPredicate);
+            // Each side of an AND allocates its own group(s), so the two sides intersect.
+            CollectIndexablePredicates(queryNode, tableName, booleanExpr.Left, predicates, ref residualPredicate, ref groupSeq);
+            CollectIndexablePredicates(queryNode, tableName, booleanExpr.Right, predicates, ref residualPredicate, ref groupSeq);
             return;
         }
 
         // OR-of-equality-on-same-property → multi-key index lookup (UNION semantics)
-        // e.g., p.name = 'Alice' OR p.name = 'Bob' → two IndexLookupPredicates
+        // e.g., p.name = 'Alice' OR p.name = 'Bob' → two IndexLookupPredicates in one union group
         if (predicate is BoundBooleanExpression orExpr &&
             orExpr.ExpressionType == ExpressionType.OR &&
             orExpr.Right != null &&
             TryExtractOrDisjunctsAsIndexPredicates(queryNode, tableName, predicate, out var orPredicates))
         {
+            var group = groupSeq++;
             foreach (var orp in orPredicates)
             {
-                if (!predicates.Exists(p => p.PropertyName == orp.PropertyName && StructuralValueComparer.AreEqual(p.LookupKey, orp.LookupKey)))
-                    predicates.Add(orp);
+                if (!predicates.Exists(p => p.GroupId == group && p.PropertyName == orp.PropertyName &&
+                                            StructuralValueComparer.AreEqual(p.LookupKey, orp.LookupKey)))
+                    predicates.Add(orp with { GroupId = group });
             }
             return;
         }

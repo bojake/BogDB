@@ -7,6 +7,59 @@ namespace BogDb.Tests.Main;
 public sealed class BogConnectionWriteTransactionTests
 {
     [Fact]
+    public void ExecuteWriteTransaction_CypherRelationshipMerge_IsImmediatelyVisible()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), $"bogdb-write-merge-{Guid.NewGuid():N}");
+        try
+        {
+            using var db = BogDatabase.Open(dbPath);
+            using var conn = new BogConnection(db);
+            conn.BeginWriteTransaction();
+            conn.EnsureNodeTable("Person", new Dictionary<string, LogicalTypeID>
+            {
+                ["id"] = LogicalTypeID.STRING
+            });
+            conn.EnsureRelTable(
+                "KNOWS",
+                "Person",
+                "Person",
+                new Dictionary<string, LogicalTypeID>());
+            conn.UpsertNodeById("Person", "p1", new Dictionary<string, object>
+            {
+                ["id"] = "p1"
+            });
+            conn.UpsertNodeById("Person", "p2", new Dictionary<string, object>
+            {
+                ["id"] = "p2"
+            });
+            conn.Commit();
+
+            conn.ExecuteWriteTransaction(() =>
+            {
+                var merge = conn.Query(
+                    "MATCH (a:Person {id:$from}), (b:Person {id:$to}) " +
+                    "MERGE (a)-[:KNOWS]->(b)",
+                    new Dictionary<string, object?>
+                    {
+                        ["from"] = "p1",
+                        ["to"] = "p2"
+                    });
+                Assert.True(merge.IsSuccess, merge.ErrorMessage);
+            });
+
+            var visible = conn.Query(
+                "MATCH (a:Person)-[:KNOWS]->(b:Person) RETURN a.id, b.id");
+            Assert.True(visible.IsSuccess, visible.ErrorMessage);
+            Assert.Equal(1UL, visible.GetNumTuples());
+        }
+        finally
+        {
+            if (Directory.Exists(dbPath))
+                Directory.Delete(dbPath, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ExecuteWriteTransaction_CommitsMultipleDirectWrites_AsOneUnit()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"bogdb-write-batch-{Guid.NewGuid():N}");
