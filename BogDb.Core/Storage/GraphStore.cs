@@ -125,7 +125,9 @@ internal sealed class GraphStore
                     if (!string.Equals(currentTableName, tableName, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (recordType == 2)
+                    // Type 5 (rel insert from MERGE) surfaces the same edge as type 2 here — this
+                    // enumeration is keyed by EdgeKey, so both register the edge with its latest properties.
+                    if (recordType == 2 || recordType == 5)
                     {
                         var edge = new EdgeKey(id, id2!);
                         if (seenEdges.Add(edge))
@@ -376,7 +378,9 @@ internal sealed class GraphStore
                 props = GraphDataSerializer.ReadProperties(reader);
                 return true;
             }
-            if (recordType == 2)
+            // Types 2 (rel upsert) and 5 (rel insert — written by relationship MERGE) share a wire shape:
+            // id2 followed by properties. Both must be parsed here, or recovery aborts on a MERGE'd edge.
+            if (recordType == 2 || recordType == 5)
             {
                 id2 = GraphDataSerializer.ReadValue(reader) ?? Guid.NewGuid().ToString();
                 props = GraphDataSerializer.ReadProperties(reader);
