@@ -16,20 +16,35 @@ internal sealed class InMemoryNodeIndex : INodeIndex
 {
     private readonly Dictionary<object, List<long>> _map = new(StructuralValueComparer.Instance);
 
+    // The set of keys each offset is currently posted under, used solely to make Put idempotent per
+    // (key, offset). An offset may legitimately appear under SEVERAL keys at once: the index is
+    // append-only for MVCC, so an update adds the new value's key while the old value's key stays behind
+    // (an older reader's snapshot still resolves the node through it, re-validated at scan time). What is
+    // never valid is the SAME offset twice under the SAME key — that returns the node twice — which is
+    // exactly what a re-SET of an unchanged value used to do (tail-only dedup missed it). This does NOT
+    // remove the offset from other keys, so snapshot isolation is preserved.
+    private readonly Dictionary<long, HashSet<object>> _keysByOffset = new();
+
     public long Count => _map.Count;
 
     public void Put(object key, long nodeOffset)
     {
         if (key is null) return;
 
+        if (!_keysByOffset.TryGetValue(nodeOffset, out var keys))
+        {
+            keys = new HashSet<object>(StructuralValueComparer.Instance);
+            _keysByOffset[nodeOffset] = keys;
+        }
+        if (!keys.Add(key))
+            return;   // (key, offset) already posted — idempotent, no duplicate
+
         if (!_map.TryGetValue(key, out var offsets))
         {
             offsets = new List<long>();
             _map[key] = offsets;
         }
-
-        if (offsets.Count == 0 || offsets[offsets.Count - 1] != nodeOffset)
-            offsets.Add(nodeOffset);
+        offsets.Add(nodeOffset);
     }
 
     public bool TryLookup(object key, out long nodeOffset)
@@ -63,6 +78,12 @@ internal sealed class InMemoryNodeIndex : INodeIndex
         var removed = offsets.Remove(nodeOffset);
         if (offsets.Count == 0)
             _map.Remove(key);
+        if (removed && _keysByOffset.TryGetValue(nodeOffset, out var keys))
+        {
+            keys.Remove(key);
+            if (keys.Count == 0)
+                _keysByOffset.Remove(nodeOffset);
+        }
         return removed;
     }
 
@@ -72,7 +93,11 @@ internal sealed class InMemoryNodeIndex : INodeIndex
             yield return new KeyValuePair<object, IReadOnlyList<long>>(key, offsets);
     }
 
-    public void Clear() => _map.Clear();
+    public void Clear()
+    {
+        _map.Clear();
+        _keysByOffset.Clear();
+    }
 }
 
 /// <summary>
@@ -84,6 +109,10 @@ internal sealed class SnapshotBackedNodeIndex : INodeIndex
 {
     private readonly Dictionary<object, IReadOnlyList<long>> _baseEntries;
     private readonly Dictionary<object, List<long>> _overlayEntries;
+    // Keys each offset is posted under, for per-(key, offset) dedup only — see InMemoryNodeIndex. An
+    // offset may be posted under several keys at once (MVCC append-only), so this never removes the offset
+    // from other keys; it only stops the same (key, offset) pair from being added twice. Built from base.
+    private readonly Dictionary<long, HashSet<object>> _keysByOffset = new();
 
     public SnapshotBackedNodeIndex(IEnumerable<KeyValuePair<object, IReadOnlyList<long>>> entries)
     {
@@ -98,6 +127,8 @@ internal sealed class SnapshotBackedNodeIndex : INodeIndex
                 continue;
 
             _baseEntries[key] = materialized;
+            foreach (var offset in materialized)
+                TrackKey(offset, key);
         }
 
         _overlayEntries = new Dictionary<object, List<long>>(StructuralValueComparer.Instance);
@@ -110,14 +141,25 @@ internal sealed class SnapshotBackedNodeIndex : INodeIndex
         if (key is null)
             return;
 
+        if (!TrackKey(nodeOffset, key))
+            return;   // (key, offset) already posted — idempotent, no duplicate
+
         if (!_overlayEntries.TryGetValue(key, out var offsets))
         {
             offsets = new List<long>();
             _overlayEntries[key] = offsets;
         }
+        offsets.Add(nodeOffset);
+    }
 
-        if (offsets.Count == 0 || offsets[offsets.Count - 1] != nodeOffset)
-            offsets.Add(nodeOffset);
+    private bool TrackKey(long nodeOffset, object key)
+    {
+        if (!_keysByOffset.TryGetValue(nodeOffset, out var keys))
+        {
+            keys = new HashSet<object>(StructuralValueComparer.Instance);
+            _keysByOffset[nodeOffset] = keys;
+        }
+        return keys.Add(key);
     }
 
     public bool TryLookup(object key, out long nodeOffset)
@@ -192,6 +234,13 @@ internal sealed class SnapshotBackedNodeIndex : INodeIndex
             }
         }
 
+        if (removed && _keysByOffset.TryGetValue(nodeOffset, out var keys))
+        {
+            keys.Remove(key);
+            if (keys.Count == 0)
+                _keysByOffset.Remove(nodeOffset);
+        }
+
         return removed;
     }
 
@@ -229,6 +278,7 @@ internal sealed class SnapshotBackedNodeIndex : INodeIndex
     {
         _baseEntries.Clear();
         _overlayEntries.Clear();
+        _keysByOffset.Clear();
     }
 }
 
@@ -257,11 +307,17 @@ public sealed class NodePropertyIndex
     }
 
     /// <summary>
-    /// (Re)build the index on <paramref name="propertyName"/> from
-    /// existing in-memory node table data.
-    /// nodeOffset is the iter order position (0-based) used as the physical id.
+    /// (Re)build the index on <paramref name="propertyName"/> from rows each paired with the PHYSICAL
+    /// offset that lookups resolve — <see cref="NodeTableData.TryGetByOffset"/> for a loaded table, or
+    /// GraphStore enumeration order for a purely persisted one. Numbering instead by enumeration position
+    /// (a dense 0..n counter) desynchronizes the index from the table the moment a tombstone makes visible
+    /// -row position diverge from physical row index: every posting past the tombstone points a row too
+    /// early, so indexed lookups silently miss (or misidentify) live nodes. Callers must supply the same
+    /// offset the scan will resolve — see <see cref="Main.BogDatabase.EnumerateNodeRowsWithOffsets"/>.
     /// </summary>
-    internal void Rebuild(string propertyName, NodeTableData table)
+    internal void RebuildFromOffsets(
+        string propertyName,
+        IEnumerable<KeyValuePair<long, Dictionary<string, object>>> rowsByOffset)
     {
         // Reuse existing index (may be DiskBackedNodeIndex); fall back to InMemoryNodeIndex.
         if (!_indexes.TryGetValue(propertyName, out var idx))
@@ -274,34 +330,10 @@ public sealed class NodePropertyIndex
             idx.Clear();
         }
 
-        long offset = 0;
-        foreach (var (id, props) in table.EnumerateRows())
+        foreach (var (offset, props) in rowsByOffset)
         {
             if (props.TryGetValue(propertyName, out var val) && val is not null)
                 idx.Put(val, offset);
-            offset++;
-        }
-    }
-
-    internal void Rebuild(string propertyName, IEnumerable<KeyValuePair<object, Dictionary<string, object>>> nodes)
-    {
-        // Reuse existing index (may be DiskBackedNodeIndex); fall back to InMemoryNodeIndex.
-        if (!_indexes.TryGetValue(propertyName, out var idx))
-        {
-            idx = new InMemoryNodeIndex();
-            _indexes[propertyName] = idx;
-        }
-        else
-        {
-            idx.Clear();
-        }
-
-        long offset = 0;
-        foreach (var (id, props) in nodes)
-        {
-            if (props.TryGetValue(propertyName, out var val) && val is not null)
-                idx.Put(val, offset);
-            offset++;
         }
     }
 

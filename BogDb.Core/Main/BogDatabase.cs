@@ -2272,11 +2272,34 @@ public class BogDatabase : IDisposable
 
         var normalizedProps = NormalizeNodePropertiesForRead(tableName, props);
 
+        var removed = new List<(string Property, object Value)>();
         foreach (var propertyName in nodeIdx.IndexedProperties)
         {
-            if (normalizedProps.TryGetValue(propertyName, out var value) && value is not null)
-                nodeIdx.Remove(propertyName, value, offset);
+            if (normalizedProps.TryGetValue(propertyName, out var value) && value is not null &&
+                nodeIdx.Remove(propertyName, value, offset))
+            {
+                removed.Add((propertyName, value));
+            }
         }
+
+        if (removed.Count == 0)
+            return;
+
+        // The row itself comes back on rollback via its own row-undo record, but the index removal above
+        // is not transactional — without a compensating action, an aborted DELETE leaves the secondary
+        // index permanently stripped and later index scans miss the still-live node. The transactional
+        // delete is a tombstone (not a compaction), so the offset is stable across delete+rollback; a
+        // rollback simply re-Puts each removed posting at that same offset. On commit there is nothing to
+        // do — the removal already stands.
+        var capturedOffset = offset;
+        tx.TrackVersionedAction(
+            Storage.UndoRecordType.UPDATE_INFO,
+            commit: () => { },
+            rollback: () =>
+            {
+                foreach (var (property, value) in removed)
+                    nodeIdx.Put(property, value, capturedOffset);
+            });
     }
 
     internal void DropTable(Transaction.Transaction transaction, string tableName)
@@ -2508,7 +2531,7 @@ public class BogDatabase : IDisposable
         }
 
         Catalog.CreateIndexEntry(tableName, propertyName, propertyType: propertyType);
-        propIdx.Rebuild(propertyName, EnumerateNodeRows(tableName));
+        propIdx.RebuildFromOffsets(propertyName, EnumerateNodeRowsByOffset(tableName));
 
         if (!_isInMemory)
             PersistState();
@@ -3052,8 +3075,19 @@ public class BogDatabase : IDisposable
                 index.CreateIndex(propertyName);
             }
 
-            index.Rebuild(propertyName, EnumerateNodeRows(tableName));
+            index.RebuildFromOffsets(propertyName, EnumerateNodeRowsByOffset(tableName));
         }
+    }
+
+    /// <summary>
+    /// Yields each node row keyed by the PHYSICAL offset a scan will resolve it to (the same offset
+    /// <see cref="EnumerateNodeRowsWithOffsets"/> reports and <see cref="TryIndexLookup"/> reads back),
+    /// so index rebuilds stay aligned with the table even in the presence of tombstones.
+    /// </summary>
+    private IEnumerable<KeyValuePair<long, Dictionary<string, object>>> EnumerateNodeRowsByOffset(string tableName)
+    {
+        foreach (var row in EnumerateNodeRowsWithOffsets(tableName))
+            yield return new KeyValuePair<long, Dictionary<string, object>>(row.Offset, row.Properties);
     }
 
     private bool TryLoadNodeIndexesFromSnapshot()
