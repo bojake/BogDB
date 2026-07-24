@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace BogDb.Core.Common;
@@ -56,8 +55,17 @@ internal sealed class StructuralValueComparer : IEqualityComparer<object?>
             return true;
         }
 
-        if (TryGetNumericValue(left, out var leftNumber) && TryGetNumericValue(right, out var rightNumber))
-            return leftNumber.Equals(rightNumber);
+        if (IsNumeric(left) && IsNumeric(right))
+        {
+            // Compare exactly as decimal when both fit (all integer types, and finite in-range floats).
+            if (TryGetExactNumeric(left, out var leftNumber) && TryGetExactNumeric(right, out var rightNumber))
+                return leftNumber == rightNumber;
+
+            // A float/double that decimal cannot hold — magnitude past ~7.9e28, or NaN/Infinity — falls
+            // back to a double comparison rather than overflowing Convert.ToDecimal. Equals (not ==) so
+            // two NaNs compare equal, keeping DISTINCT/MERGE from crashing on extreme or non-finite values.
+            return TypeCoercionHelper.ToDouble(left).Equals(TypeCoercionHelper.ToDouble(right));
+        }
 
         return object.Equals(left, right);
     }
@@ -90,8 +98,15 @@ internal sealed class StructuralValueComparer : IEqualityComparer<object?>
             return hash.ToHashCode();
         }
 
-        if (TryGetNumericValue(value, out var number))
-            return number.GetHashCode();
+        if (IsNumeric(value))
+        {
+            // Mirror AreEqual: a decimal-representable value hashes as decimal; an extreme/non-finite
+            // float or double hashes as double. Values on the two paths can never compare equal (their
+            // magnitudes differ), so hash/equality stay consistent.
+            return TryGetExactNumeric(value, out var number)
+                ? number.GetHashCode()
+                : TypeCoercionHelper.ToDouble(value).GetHashCode();
+        }
 
         return value.GetHashCode();
     }
@@ -166,7 +181,14 @@ internal sealed class StructuralValueComparer : IEqualityComparer<object?>
         return false;
     }
 
-    private static bool TryGetNumericValue(object value, out decimal numeric)
+    private static bool IsNumeric(object value)
+        => TypeCoercionHelper.Normalize(value)
+            is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
+
+    // Represents an integer/decimal value, or a finite in-range float/double, exactly as decimal. Returns
+    // false for a float/double that decimal cannot hold — |x| beyond ~7.9228e28, or NaN/±Infinity — instead
+    // of throwing OverflowException the way Convert.ToDecimal does.
+    private static bool TryGetExactNumeric(object value, out decimal numeric)
     {
         switch (TypeCoercionHelper.Normalize(value))
         {
@@ -194,15 +216,17 @@ internal sealed class StructuralValueComparer : IEqualityComparer<object?>
             case ulong ulongValue:
                 numeric = ulongValue;
                 return true;
-            case float floatValue:
-                numeric = Convert.ToDecimal(floatValue, CultureInfo.InvariantCulture);
-                return true;
-            case double doubleValue:
-                numeric = Convert.ToDecimal(doubleValue, CultureInfo.InvariantCulture);
-                return true;
             case decimal decimalValue:
                 numeric = decimalValue;
                 return true;
+            case float floatValue:
+                if (!float.IsFinite(floatValue)) { numeric = default; return false; }
+                try { numeric = (decimal)floatValue; return true; }
+                catch (OverflowException) { numeric = default; return false; }
+            case double doubleValue:
+                if (!double.IsFinite(doubleValue)) { numeric = default; return false; }
+                try { numeric = (decimal)doubleValue; return true; }
+                catch (OverflowException) { numeric = default; return false; }
             default:
                 numeric = default;
                 return false;

@@ -252,17 +252,36 @@ public sealed class PhysicalAggregate : PhysicalOperator
                 }
                 else if (argExpr != null)
                 {
-                    // Numeric aggregates: SUM / AVG / MIN / MAX
+                    // SUM / AVG / MIN / MAX
                     var raw  = ExpressionExecutionHelper.Evaluate(argExpr, context);
                     var norm = TypeCoercionHelper.Normalize(raw);
                     if (norm != null)
                     {
                         if (IsDistinctDuplicate(state, i, expr, norm))
                             continue;
-                        double dval = TypeCoercionHelper.ToDouble(norm);
-                        if (nLower is "sum" or "avg") state.Sums[i] += dval;
-                        if (nLower == "min") state.Mins[i] = Math.Min(state.Mins[i], dval);
-                        if (nLower == "max") state.Maxes[i] = Math.Max(state.Maxes[i], dval);
+
+                        if (nLower == "min")
+                        {
+                            // MIN/MAX are defined for any orderable type (strings, temporals, numbers) —
+                            // use the same total order ORDER BY uses instead of forcing the value through
+                            // ToDouble, which threw a FormatException on a STRING or temporal column.
+                            if (state.MinVals[i] is null ||
+                                StructuralValueOrderComparer.CompareValues(norm, state.MinVals[i]) < 0)
+                                state.MinVals[i] = norm;
+                        }
+                        else if (nLower == "max")
+                        {
+                            if (state.MaxVals[i] is null ||
+                                StructuralValueOrderComparer.CompareValues(norm, state.MaxVals[i]) > 0)
+                                state.MaxVals[i] = norm;
+                        }
+                        else // sum / avg — numeric only
+                        {
+                            if (!TryToNumeric(norm, out var dval))
+                                throw new InvalidOperationException(
+                                    $"{nLower}() requires numeric values but received '{norm}' of type {norm.GetType().Name}.");
+                            state.Sums[i] += dval;
+                        }
                         state.Rows[i]++;
                         state.LastVals[i] = norm;
                     }
@@ -290,8 +309,8 @@ public sealed class PhysicalAggregate : PhysicalOperator
                     "count_if" => (object?)state.Counts[i],
                     "sum"  => state.Rows[i] > 0 ? (object?)state.Sums[i]  : null,
                     "avg"  => state.Rows[i] > 0 ? (object?)(state.Sums[i] / state.Rows[i]) : null,
-                    "min"  => state.Rows[i] > 0 ? (object?)state.Mins[i]  : null,
-                    "max"  => state.Rows[i] > 0 ? (object?)state.Maxes[i] : null,
+                    "min"  => state.MinVals[i],
+                    "max"  => state.MaxVals[i],
                     "collect" => (object?)(state.CollectedLists[i] ?? new List<object?>()),
                     _      => (object?)state.Counts[i]
                 };
@@ -338,6 +357,32 @@ public sealed class PhysicalAggregate : PhysicalOperator
         return false;
     }
 
+    // Non-throwing numeric coercion for SUM/AVG. Mirrors TypeCoercionHelper.ToDouble (including numeric
+    // strings) but returns false instead of throwing, so a non-numeric value yields a clean aggregate
+    // error rather than an unhandled FormatException.
+    private static bool TryToNumeric(object value, out double result)
+    {
+        switch (value)
+        {
+            case double d: result = d; return true;
+            case float f: result = f; return true;
+            case long l: result = l; return true;
+            case int i: result = i; return true;
+            case short s: result = s; return true;
+            case byte b: result = b; return true;
+            case sbyte sb: result = sb; return true;
+            case ushort us: result = us; return true;
+            case uint ui: result = ui; return true;
+            case ulong ul: result = ul; return true;
+            case decimal dec: result = (double)dec; return true;
+            case bool bl: result = bl ? 1.0 : 0.0; return true;
+            case string str when double.TryParse(str, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var parsed):
+                result = parsed; return true;
+            default: result = 0; return false;
+        }
+    }
+
     private static bool IsDistinctDuplicate(GroupState state, int itemIndex, Expression expr, object? value)
     {
         if (expr is not BoundFunctionExpression bfe || !bfe.IsDistinct)
@@ -354,8 +399,10 @@ public sealed class PhysicalAggregate : PhysicalOperator
     {
         public long[]    Counts;
         public double[]  Sums;
-        public double[]  Mins;
-        public double[]  Maxes;
+        // MIN/MAX hold the winning VALUE (any orderable type), not a running double, so they work for
+        // strings and temporals and preserve the original type on output.
+        public object?[] MinVals;
+        public object?[] MaxVals;
         public long[]    Rows;
         public object?[] LastVals;
         public HashSet<object?>?[] DistinctSeen;
@@ -369,13 +416,12 @@ public sealed class PhysicalAggregate : PhysicalOperator
         {
             Counts   = new long[n];
             Sums     = new double[n];
-            Mins     = new double[n];
-            Maxes    = new double[n];
+            MinVals  = new object?[n];
+            MaxVals  = new object?[n];
             Rows     = new long[n];
             LastVals = new object?[n];
             DistinctSeen = new HashSet<object?>?[n];
             CollectedLists = new List<object?>?[n];
-            for (int i = 0; i < n; i++) { Mins[i] = double.MaxValue; Maxes[i] = double.MinValue; }
         }
     }
 }
