@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using BogDb.Core.Binder;
 using BogDb.Core.Common;
 
@@ -131,31 +130,24 @@ public sealed class PhysicalAggregate : PhysicalOperator
     private List<AggregateRow> BuildKeyedGroups(ExecutionContext context)
     {
         // Ordered dict so groups come out in first-seen order (stable output)
-        var groups      = new Dictionary<string, GroupState>();
-        var keyOrder    = new List<string>(); // insertion order
-        var keyValueMap = new Dictionary<string, object?[]>(); // key → evaluated key values
+        var groups   = new Dictionary<GroupKey, GroupState>();
+        var keyOrder = new List<GroupKey>(); // insertion order
 
         while (Children[0].GetNextTuple(context))
         {
-            // Evaluate each group-key expression and build the composite key string
+            // Evaluate each group-key expression into a composite key with structural (Cypher) equality —
+            // not a string form, which collapsed type-distinct keys such as long 1 and string '1'.
             var keyVals = new object?[_keyItems.Count];
-            var kb = new StringBuilder();
             for (int k = 0; k < _keyItems.Count; k++)
-            {
-                var val = TypeCoercionHelper.Normalize(
+                keyVals[k] = TypeCoercionHelper.Normalize(
                     ExpressionExecutionHelper.Evaluate(_keyItems[k].Expression, context));
-                keyVals[k] = val;
-                if (k > 0) kb.Append('\x01'); // unit-separator — unlikely in data
-                kb.Append(TypeCoercionHelper.ToBogDbString(val) ?? "\x00");
-            }
-            var keyStr = kb.ToString();
+            var key = new GroupKey(keyVals);
 
-            if (!groups.TryGetValue(keyStr, out var state))
+            if (!groups.TryGetValue(key, out var state))
             {
                 state = new GroupState(_items.Count);
-                groups[keyStr] = state;
-                keyOrder.Add(keyStr);
-                keyValueMap[keyStr] = keyVals;
+                groups[key] = state;
+                keyOrder.Add(key);
                 // Seed the key slots of the state with the key values
                 for (int i = 0; i < _items.Count; i++)
                 {
@@ -173,6 +165,47 @@ public sealed class PhysicalAggregate : PhysicalOperator
         return keyOrder
             .Select(k => new AggregateRow(FinalizeRow(groups[k], _items), groups[k].CarriedIds, groups[k].CarriedProps))
             .ToList();
+    }
+
+    // Composite GROUP BY key with Cypher grouping semantics: equal values group together — numbers across
+    // numeric types (1 and 1.0), and two nulls — while values that merely share a string form do not, so a
+    // long 1 and a string '1' fall in different groups. Uses the same StructuralValueComparer that
+    // count(DISTINCT) uses, so grouping and distinct can no longer contradict each other.
+    private readonly struct GroupKey : IEquatable<GroupKey>
+    {
+        private readonly object?[] _values;
+
+        public GroupKey(object?[] values) => _values = values;
+
+        public bool Equals(GroupKey other)
+        {
+            if (_values.Length != other._values.Length)
+                return false;
+            for (int i = 0; i < _values.Length; i++)
+            {
+                var a = _values[i];
+                var b = other._values[i];
+                if (a is null || b is null)
+                {
+                    if (a is null && b is null)
+                        continue;   // two nulls group together
+                    return false;
+                }
+                if (!StructuralValueComparer.AreEqual(a, b))
+                    return false;
+            }
+            return true;
+        }
+
+        public override bool Equals(object? obj) => obj is GroupKey other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            foreach (var value in _values)
+                hash.Add(StructuralValueComparer.GetStructuralHashCode(value));
+            return hash.ToHashCode();
+        }
     }
 
     // Records, for each group-key that is a node or relationship variable, its id and properties as bound
