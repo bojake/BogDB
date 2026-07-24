@@ -98,3 +98,9 @@ Behavior-affecting corrections — review before upgrading:
   persistence of the index structures, and rebuild-or-restore on reopen.
 - Per-hop predicate filtering in variable-length traversal —
   `MATCH (a)-[r:REL*lo..hi (rr, nn | WHERE …)]->(b)` — pruning edges during the traversal.
+
+[1.4.0]: https://github.com/BeyondOrdinary/BogDB/compare/v1.3.3...v1.4.0
+[1.3.3]: https://github.com/BeyondOrdinary/BogDB/compare/v1.3.2...v1.3.3
+[1.3.2]: https://github.com/BeyondOrdinary/BogDB/compare/v1.3.1...v1.3.2
+[1.3.1]: https://github.com/BeyondOrdinary/BogDB/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/BeyondOrdinary/BogDB/releases/tag/v1.3.0
